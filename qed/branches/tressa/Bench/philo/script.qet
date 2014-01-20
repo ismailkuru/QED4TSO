@@ -1,0 +1,12 @@
+reduce all
+simulate Atomic_18@getForks assume true;
+reduce loop Atomic_18@getForks assume true;
+reduce all
+invariant (forall a: int :: id[a] == a)
+invariant (forall a: int :: forks[a] <==> ownforks[a] == tid)
+reduce all
+invariant objlock == 0
+reduce all
+mover all
+simulate Atomic_1@getForks assume objlock == 0;             objlock := tid;              id1 := id[tid];              id2 := id[(tid + 1) % NUM_PHIL];              assert objlock == tid;                          assert objlock == tid;             objlock := 0;              assume true;
+reduce all

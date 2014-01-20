@@ -1,0 +1,14 @@
+inline all
+nullcheck
+reduce proc create_node
+inline all
+assert Call_10 IsAlloc(node.alloc) && node.next == nulln
+assert Call_12 n != nulln && ReachBetween(Node_next, this.head, n, nulln)
+assert Call_13 node != nulln && ReachBetween(Node_next, this.head, node, nulln)
+assert Call_19 n != nulln && ReachBetween(Node_next, this.head, n, nulln)
+assert Call_23 n != nulln && ReachBetween(Node_next, this.head, n, nulln)
+invariant (forall m: Node :: !IsAlloc(m.alloc) ==> m.next == nulln)
+assert Call_10 (forall m: Node :: m.next != node)
+invariant (forall m1: Node, m2: Node :: IsDealloc(m1.alloc) ==> m2.next != m1)
+invariant (forall q: Queue, m: Node :: ReachBetween(Node_next, q.head, m, q.tail) ==> IsAlloc(m.alloc)) && (forall q: Queue :: ReachBetween(Node_next, q.head, q.tail, nulln)) && (forall q: Queue, m: Node :: ReachBetween(Node_next, q.head, m, nulln) && m != nulln ==> IsAlloc(m.alloc))
+invariant (forall q1: Queue, q2: Queue, m: Node :: IsAlloc(m.alloc) && q1 != q2 && (ReachBetween(Node_next, q1.head, m, m) || ReachBetween(Node_next, m, q1.head, q1.head)) ==> !ReachBetween(Node_next, q2.head, m, m) && !ReachBetween(Node_next, m, q2.head, q2.head))

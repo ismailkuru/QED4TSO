@@ -1,0 +1,283 @@
+Processing the file: RL_with_NFS_simp.bpl
+Creating procedure state: Thread_nativeIsInterrupted
+Creating procedure state: Thread_interrupt
+Creating procedure state: Thread_currentThread
+Creating procedure state: Thread_interrupted
+Creating procedure state: Node_Node
+Creating procedure state: Node_Node_2
+Creating procedure state: Node_predecessor
+Creating procedure state: AOS_setExclusiveOwnerThread
+Creating procedure state: AOS_getExclusiveOwnerThread
+Creating procedure state: AQS_getState
+Creating procedure state: AQS_setState
+Creating procedure state: AQS_enq
+Creating procedure state: AQS_setHead
+Creating procedure state: AQS_addWaiter
+Creating procedure state: AQS_unparkSuccessor
+Creating procedure state: AQS_release
+Creating procedure state: AQS_cancelAcquire
+Creating procedure state: AQS_parkAndCheckInterrupt
+Creating procedure state: AQS_acquireQueued
+Creating procedure state: AQS_acquire
+Creating procedure state: AQS_shouldParkAfterFailedAcquire
+Creating procedure state: AQS_selfInterrupt
+Creating procedure state: AQS_compareAndSetState
+Creating procedure state: AQS_compareAndSetHead
+Creating procedure state: AQS_compareAndSetTail
+Creating procedure state: AQS_compareAndSetWaitStatus
+Creating procedure state: AQS_compareAndSetNext
+Creating procedure state: Sync_tryRelease
+Creating procedure state: Sync_nonfairTryAcquire
+Creating procedure state: NonfairSync_tryAcquire
+Creating procedure state: NonfairSync_lock
+Creating procedure state: LockSupport_park
+Creating procedure state: LockSupport_unpark
+Creating procedure state: ReentrantLock_unlock
+Creating procedure state: ReentrantLock_lock
+Done with preprocessing the program.
+Initializing the theorem prover
+Initialized the theorem prover
+Running the command: inline all
+Reduced the procedure : Thread_nativeIsInterrupted
+Reduced the procedure : Thread_interrupt
+Reduced the procedure : Thread_currentThread
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: Thread_interrupted
+Reduced the procedure : Node_Node
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: Node_Node_2
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: Node_predecessor
+Reduced the procedure : AOS_setExclusiveOwnerThread
+Reduced the procedure : AOS_getExclusiveOwnerThread
+Reduced the procedure : AQS_getState
+Reduced the procedure : AQS_setState
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_enq
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_setHead
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_addWaiter
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_unparkSuccessor
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_release
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_cancelAcquire
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_parkAndCheckInterrupt
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_acquireQueued
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_acquire
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_shouldParkAfterFailedAcquire
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: AQS_selfInterrupt
+Reduced the procedure : AQS_compareAndSetState
+Reduced the procedure : AQS_compareAndSetHead
+Reduced the procedure : AQS_compareAndSetTail
+Reduced the procedure : AQS_compareAndSetWaitStatus
+Reduced the procedure : AQS_compareAndSetNext
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: Sync_tryRelease
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: Sync_nonfairTryAcquire
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: NonfairSync_tryAcquire
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: NonfairSync_lock
+Reduced the procedure : LockSupport_park
+Reduced the procedure : LockSupport_unpark
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: ReentrantLock_unlock
+ERROR: Body of the procedure is not atomic!!!!
+Did not reduce the procedure: ReentrantLock_lock
+Finished with the command: inline all
+Processing the file: C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Creating procedure state: Thread_interrupted
+Creating procedure state: Node_Node_2
+Creating procedure state: Node_predecessor
+Creating procedure state: AQS_enq
+Creating procedure state: AQS_setHead
+Creating procedure state: AQS_addWaiter
+Creating procedure state: AQS_unparkSuccessor
+Creating procedure state: AQS_release
+Creating procedure state: AQS_cancelAcquire
+Creating procedure state: AQS_parkAndCheckInterrupt
+Creating procedure state: AQS_acquireQueued
+Creating procedure state: AQS_acquire
+Creating procedure state: AQS_shouldParkAfterFailedAcquire
+Creating procedure state: AQS_selfInterrupt
+Creating procedure state: Sync_tryRelease
+Creating procedure state: Sync_nonfairTryAcquire
+Creating procedure state: NonfairSync_tryAcquire
+Creating procedure state: NonfairSync_lock
+Creating procedure state: ReentrantLock_unlock
+Creating procedure state: ReentrantLock_lock
+Done with preprocessing the program.
+Initializing the theorem prover
+Initialized the theorem prover
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_92 p.alloc == Alloc
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_92 p.alloc == Alloc
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: reduce proc AQS_enq
+Merging atomic statements: Atomic_18 and Atomic_22
+Checking mover type of Atomic_18@AQS_enq
+Checking mover type of Call_23@AQS_enq
+Checking mover type of Atomic_153@AQS_enq
+Checking mover type of Atomic_18_else@AQS_enq
+Checking mover type of Atomic_27@AQS_enq
+Checking mover type of Call_28@AQS_enq
+Checking mover type of Atomic_154@AQS_enq
+Finished with the command: reduce proc AQS_enq
+Proof script ended!
+Current program was saved to C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Running the command: aux intro owner [Node]int
+Done with making owner auxiliary variable!
+Finished with the command: aux intro owner [Node]int
+Running the command: aux remove owner
+Done with making variable owner non-auxiliary
+Finished with the command: aux remove owner
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_10 owner[this] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_10 owner[this] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_18 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_18 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Current program was saved to C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Running the command: assert Atomic_12 owner[this] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_12 owner[this] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_27 owner[this] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_27 owner[this] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_34 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_34 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Current program was saved to C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Running the command: assert Atomic_41 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_41 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_56 owner[t] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_56 owner[t] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_64 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_64 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_66 owner[pred] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_66 owner[pred] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_67 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_67 owner[node] == tid
+Current program was saved to C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_106 owner[pred_dup] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_106 owner[pred_dup] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_107 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_107 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_109 owner[pred_dup] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_109 owner[pred_dup] == tid
+Running the command: assert Atomic_110 owner[node] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_110 owner[node] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: reduce proc AQS_enq
+Merging atomic statements: Atomic_18 and Call_23
+Checking mover type of Atomic_18@AQS_enq
+Checking mover type of Atomic_153@AQS_enq
+Checking mover type of Atomic_18_else@AQS_enq
+Checking mover type of Atomic_27@AQS_enq
+Checking mover type of Call_28@AQS_enq
+Checking mover type of Atomic_154@AQS_enq
+Merging atomic statements: Atomic_18_else and Atomic_27
+Checking mover type of Atomic_18@AQS_enq
+Checking mover type of Atomic_153@AQS_enq
+Checking mover type of Atomic_18_else@AQS_enq
+Checking mover type of Call_28@AQS_enq
+Checking mover type of Atomic_154@AQS_enq
+Merging atomic statements: Atomic_18_else and Call_28
+Checking mover type of Atomic_18@AQS_enq
+Checking mover type of Atomic_153@AQS_enq
+Checking mover type of Atomic_18_else@AQS_enq
+Checking mover type of Atomic_154@AQS_enq
+Merging atomic statements: Atomic_18_else and Atomic_154
+Checking mover type of Atomic_18@AQS_enq
+Checking mover type of Atomic_153@AQS_enq
+Checking mover type of Atomic_18_else@AQS_enq
+Finished with the command: reduce proc AQS_enq
+Current program was saved to C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\myp.bpl
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: assert Atomic_18 owner[this.head] == tid
+Atomic block annotated with the assertion.
+Finished with the command: assert Atomic_18 owner[this.head] == tid
+Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Processing the file: C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+2 parse errors detected in C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+Error parsing the program.Processing the file: C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+2 parse errors detected in C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+Error parsing the program.Processing the file: C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+2 parse errors detected in C:\home\kmuslu\Ikeda\Bench\java.util.concurrent\qed_temp.bpl
+Error parsing the program.Running the command: mover Atomic_18
+Checking mover type of Atomic_18@AQS_enq
+Finished with the command: mover Atomic_18
+Running the command: mover Atomic_153
+Checking mover type of Atomic_153@AQS_enq
+Finished with the command: mover Atomic_153

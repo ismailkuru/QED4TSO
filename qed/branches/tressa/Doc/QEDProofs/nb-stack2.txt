@@ -1,0 +1,366 @@
+ref pop() {
+  m, n : ref;
+  while (true) {
+    m = TOP;
+    if (m == nil) break;
+    H[tid] = m;
+    if (m == TOP) {
+      n = tl[m];
+      if (CAS(&TOP, m, n)) break;
+    }
+  } 
+  H[tid] = nil; 
+  return m;
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+  for (i = 1; i <= THREADS; i++)
+    if (H[i] == b) return false;
+  while (true) {
+    m = TOP;
+    tl[b] = m;
+    if (CAS(&TOP, m, b)) return true;
+  }
+}
+
+--------
+Introduce an auxiliary variable AH : [1,THREADS]->ref.
+Also, introduce and prove the invariant 
+(forall t in [1,THREADS]. AH[t] == H[t] || AH[t] == nil).
+ref pop() {
+  m, n : ref;
+  while (true) {
+    m = TOP;
+    if (m == nil) break;
+    <H[tid] = m; AH[tid] = m>;
+    if (m == TOP) {
+      n = tl[m];
+      if (CAS(&TOP, m, n)) break;
+    }
+    AH[tid] = nil;
+  } 
+  <H[tid] = nil; AH[tid] = nil>;
+  return m;
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+  for (i = 1; i <= THREADS; i++)
+    if (H[i] == b) return false;
+  while (true) {
+    m = TOP;
+    tl[b] = m;
+    if (CAS(&TOP, m, b)) return true;
+  }
+}
+
+---
+ref pop() {
+  m, n : ref;
+  while (*) {
+    m = TOP;
+    assume (m != nil);
+    <H[tid] = m; AH[tid] = m>;
+    if (m == TOP) {
+      n = tl[m];
+      assume (TOP != m);
+    }
+    AH[tid] = nil;
+  } 
+
+  {
+    m = TOP;
+    assume (m == nil);
+    <H[tid] = nil; AH[tid] = nil>;
+    return m;
+  }  
+  []
+  { 
+    m = TOP;
+    assume (m != nil);
+    <H[tid] = m; AH[tid] = m>;
+    assume (m == TOP);
+    n = tl[m];
+    <assume TOP == m; TOP = n; owner[m] = tid>;
+    <H[tid] = nil; AH[tid] = nil>;
+    return m;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+  for (i = 1; i <= THREADS; i++)
+    if (H[i] == b) return false;
+
+  while (*) {
+    m = TOP;
+    tl[b] = m;
+    assume (TOP != m);
+  }
+
+  m = TOP;
+  tl[b] = m;
+  <assume TOP == m; TOP = b; owner[b] = 0>;
+  return true;
+}
+
+---
+We perform abstraction now. 
+The main abstraction is to replace if (H[i] == b) return false
+with 
+<assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>;
+ref pop() {
+  m, n : ref;
+  while (*) {
+    havoc m;
+    assume (m != nil);
+    <assert H[tid] == nil; H[tid] = m; AH[tid] = m>;
+    if (*) {
+      havoc n;
+      assume (true);
+    }
+    AH[tid] = nil;
+  } 
+
+  {
+    m = TOP; 
+    assume (m == nil); 
+    <H[tid] = nil; AH[tid] = nil>;
+    return nil
+  }
+  []
+  { 
+    havoc m; 
+    assume (m != nil);
+    <assert H[tid] == nil; H[tid] = m; AH[tid] = m>;
+    assume (m == TOP);
+    <assert AH[tid] == m; n = tl[m]>;
+    <assume TOP == m; TOP = n; owner[m] = tid>;
+    <H[tid] = nil; AH[tid] = nil>;
+    return m;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+  for (i = 1; i <= THREADS; i++)
+    <assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>;
+
+  while (*) {
+    havoc m;
+    <assert b != nil && owner[b] == tid; tl[b] = m>;
+    assume (true);
+  }
+
+  havoc m; 
+  <assert b != nil && owner[b] == tid; tl[b] = m>;
+  <assume TOP == m; TOP = b; owner[b] = 0>;
+  return true;
+}
+
+---
+ref pop() {
+  m, n : ref;
+
+  while (*) {
+    <havoc m, n; assert H[tid] == nil; H[tid] = m>
+  } 
+
+    <m = TOP; assume (m == nil); H[tid] = nil; AH[tid] = nil; return nil>
+  []
+  { 
+    <havoc m; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume (m == TOP)>;
+    <assert AH[tid] == m; n = tl[m]>;
+    <assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+  for (i = 1; i <= THREADS; i++)
+    <assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>;
+
+  while (*) {
+    <havoc m; assert b != nil && owner[b] == tid; tl[b] = m>; 
+  }
+
+  <havoc m; assert b != nil && owner[b] == tid; tl[b] = m>;
+  <assume TOP == m; TOP = b; owner[b] = 0; return true>;
+}
+
+---
+ref pop() {
+  m, n : ref;
+  
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+  {  
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP>;
+    <assert AH[tid] == m; n = tl[m]>;
+    <assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+  for (i = 1; i <= THREADS; i++)
+    <assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>;
+
+  while (*) {
+    <assert (forall j in [1,THREADS]. AH[j] != b); havoc m; assert b != nil && owner[b] == tid; tl[b] = m>;
+  }
+
+  <assert (forall j in [1,THREADS]. AH[j] != b); havoc m; assert b != nil && owner[b] == tid; tl[b] = m>;
+  <assume TOP == m; TOP = b; owner[b] = 0; return true>;
+}
+
+---
+Now we can show that the actions
+<assert AH[tid] == m; n = tl[m]>
+and
+<assert (forall j in [1,THREADS]. AH[j] != b); havoc m; assert b != nil && owner[b] == tid; tl[b] = m>
+are right movers.
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+  {
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP>;
+    <assert AH[tid] == m; n = tl[m]; assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+  for (i = 1; i <= THREADS; i++)
+    <assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>;
+
+  <assert (forall j in [1,THREADS]. AH[j] != b); havoc m; assert b != nil && owner[b] == tid; tl[b] = m; assume TOP == m; TOP = b; owner[b] = 0; return true>;
+}
+
+---
+Introduce and prove invariant (forall x \in list(TOP). owner[x] == 0).  
+This invariant allows us to prove that the action
+<assert b != nil && owner[b] == tid; (return false [] assume (AH[i] != b))>
+in push() is a right mover.
+
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+  {
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP>;
+    <assert AH[tid] == m; n = tl[m]; assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+    <assert b != nil && owner[b] == tid; return false 
+  [] 
+  {
+    <assert b != nil && owner[b] == tid; assume (forall j in [1,THREADS]. AH[j] != b)>;
+    <assert (forall j in [1,THREADS]. AH[j] != b); havoc m; assert b != nil && owner[b] == tid; tl[b] = m; assume TOP == m; TOP = b; owner[b] = 0; return true>;
+  }
+}
+
+----
+Now we can show that the action 
+<assert b != nil && owner[b] == tid; assume (forall j in [1,THREADS]. AH[j] != b)>
+is a right mover.
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+  {
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP>;
+    <assert AH[tid] == m; n = tl[m]; assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+  }
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+      <assert b != nil && owner[b] == tid; return false>
+    [] 
+      <assert b != nil && owner[b] == tid; tl[b] = TOP; TOP = b; owner[b] = 0; return true>
+}
+
+---
+Now we can show that
+<havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP>
+is a right mover.
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; H[tid] = m; AH[tid] = m; assume m == TOP; assert AH[tid] == m; n = tl[m]; assume TOP == m; TOP = n; owner[m] = tid; H[tid] = nil; AH[tid] = nil; return m>;
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+      <assert b != nil && owner[b] == tid; return false>
+    [] 
+      <assert b != nil && owner[b] == tid; tl[b] = TOP; TOP = b; owner[b] = 0; return true>
+}
+
+---
+We now simplify.
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; assert H[tid] == nil; m = TOP; assume (m == nil); return nil>
+  []
+    <havoc m, n; assume (m != nil); assert H[tid] == nil; assume m == TOP; n = tl[m]; TOP = n; owner[m] = tid; return m>;
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+      <assert b != nil && owner[b] == tid; return false>
+    [] 
+      <assert b != nil && owner[b] == tid; tl[b] = TOP; TOP = b; owner[b] = 0; return true>
+}
+
+---
+Introduce and prove the invariant (forall t in [1,THREADS]. H[t] == nil).
+This allows us to prove the asserts in pop().
+ref pop() {
+  m, n : ref;
+
+    <havoc m, n; m = TOP; assume (m == nil); return nil>
+  []
+    <havoc m, n; assume (m != nil); assume m == TOP; n = tl[m]; TOP = n; owner[m] = tid; return m>;
+}
+
+bool push(ref b) {
+  m : ref;
+  i : int;
+
+      <assert b != nil && owner[b] == tid; return false>
+    [] 
+      <assert b != nil && owner[b] == tid; tl[b] = TOP; TOP = b; owner[b] = 0; return true>
+}

@@ -1,0 +1,85 @@
+Let s be the following statement:
+int t;
+t = x
+;
+t++
+;
+x := t
+;
+(int t; acquire(m); t = x; t++; x := t; release(m))
+||
+(int t; acquire(m); t = x; t++; x := t; release(m))
+;
+t = x
+;
+t++
+;
+x := t
+
+The goal is to prove valid the Floyd-Hoare triple {m = false && x = 0} s {m = false && x = 4}
+
+Step 1:
+-------
+Let us introduce two auxiliary variables: 
+owner : TID + @m;
+
+The instrumented program is as follows:
+int t;
+<t = x>
+;
+t++
+;
+<x := t>
+;
+<owner := @m>
+;
+(
+int t; 
+<m = false -> m := true; owner := tid>
+; 
+<t = x>
+;
+t++
+;
+<x := t>
+;
+<m := false; owner := @m>
+)
+||
+(
+int t; 
+<m = false -> m := true; owner := tid>
+; 
+<t = x>
+;
+t++
+;
+<x := t>
+;
+<m := false; owner := @m>
+)
+;
+<owner := tid>
+;
+<t = x>
+;
+t++
+;
+<x := t>
+
+The new goal is to prove valid the Floyd-Hoare triple {m = false && x = 0 && owner = tid} s {m = false && x = 4 && owner = tid}
+
+Step 2:
+-------
+We would like to strengthen each of the accesses to x by the assertion owner = tid, 
+the lock acquires by owner = @m, the lock releases with owner = tid, 
+the assignment <owner := @m> by owner = tid, and the assignment <owner := tid> by owner = @m.
+To achieve this strengthening, we perform rely-guarantee reasoning.
+We annotate the statement s by 
+a rely condition m' = m && owner' = owner, and
+a guarantee condition true.
+We annotate each thread in the parallel composition in s by
+a rely condition owner = tid ==> owner' = owner, 
+a guarantee condition owner = @m || owner = tid || owner' = owner, and 
+an invariant m = false <==> owner = @m.
+

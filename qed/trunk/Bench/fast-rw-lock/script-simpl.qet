@@ -1,0 +1,28 @@
+inline all
+reduce all
+assert proc writerUnlock I != null && I.alloc == True
+assert Atomic_8@writerLock I != null && I.alloc == True
+assert stmt Atomic_10@writerLock I != null && I.alloc == True
+assert Call_9@writerLock I != null && I.alloc == True
+reduce all
+assert Atomic_16@writerUnlock I.next != null && I.next.alloc == True
+assert Atomic_17@writerUnlock I.next != null && I.next.alloc == True
+assert stmt Atomic_10@writerLock pred != null && pred.alloc == True
+reduce all
+check all
+aux intro owner [Lelem]int
+simulate Atomic_5@writerLock I := New Lelem;          I.state := WRITER;          I.spin := 1;          I.next := null;          pred := tail;         tail := I; owner[I] := tid;
+aux remove owner
+invariant (forall elem: Lelem :: elem.alloc == False ==> owner[elem] == 0)
+assert stmt Atomic_10@writerLock owner[I] == tid
+invariant (forall elem: Lelem :: elem == null ==> elem.next == null && elem.prev == null)
+assert Atomic_10@writerLock pred.next == null
+assert proc writerUnlock owner[I] == tid
+abstract read Lelem_next Atomic_12@writerUnlock
+reduce all
+split if Atomic_10@writerLock
+reduce all
+check all
+simulate Atomic_12@writerUnlock havoc abst_Lelem_next_0;         assert owner[I] == tid;         assert I != null && I.alloc == True;         guard_1 := abst_Lelem_next_0[I] == null; havoc guard_1;          assert owner[I] == tid;         assert I != null && I.alloc == True;         if (*)         { havoc tmp;             fresh_0 := tail == I;             if (fresh_0)             {                 tail := null;                 return;             }         }
+simulate Atomic_15@writerUnlock var temp: Lelem; assert owner[I] == tid;         assert I != null && I.alloc == True;         assume I.next != null;          assert I.next != null && I.next.alloc == True;         assert I != null && I.alloc == True; havoc temp;         I.next.prev := temp;          assert owner[I] == tid;         assert I.next != null && I.next.alloc == True;         assert I != null && I.alloc == True;         I.next.spin := 0;
+invariant (forall elem: Lelem :: elem.alloc == False ==> elem.prev == null && elem.next == null)

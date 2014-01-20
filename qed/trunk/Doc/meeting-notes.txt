@@ -1,0 +1,14 @@
+
+- Shaz said that the POPL paper is a strong one including a lot of stuff. From now on, we should carve in the method and find out pieces to improve and submit to a conference. These papers will not have as much stuff as the POPL paper has but will be easier to work on and write. I should plan which pieces of QED to focus on and write to a conference. One possibility is to write a paper explaining in detail how we prove a well-known example using QED.
+
+- In order to decide how to proceed to solve the problem with mover checks in the case of existential quantifiers, we will collect benchmarks in which quantifiers cause problem and give false negative results from mover checks.
+
+- Using built-in select-update theory of Z3 or using the select-update axioms of Boogie. Currently let's go with the latter and add the axiom to make use of the "extensional" array theory
+axiom for extensional arrays: (forall i,j. (h[x]==g[y]) ==> (h==g))
+
+- Proving concurrent libraries from .Net and Java. Coding them in Boogie and proving assertions in them or proving procedure specifications. In order to code them in Boogie, we need extensions including heap allocation/deallocation and records, we can add them in a language like Boogie+ and translate it to standard Boogie creating custom maps, functions etc. as done in Havoc and Dafny. We decided that we continue using Boogie as the input language to QED and extending it with constructs like heap allocation, records etc. as we need them. These can be done using a Perl script or modifying the parser of Boogie.
+
+- I will write down the proof rules over CFGs and send them in a separate email. Then we can discuss over those. Reasoning about atomicity over unstructured CFGs could be a good paper to publish.
+
+- How to make the mover check in a modular way. Currently the mover check is not monotonic, which means if A commutes to the right over B and B' simulates B, A may not commute over B'. This makes the approach in which we model modules with transitions that simulate all the atomic transitions of a module unsound. One possibility is to enforce a data distribution that will make mover checks simpler.
+

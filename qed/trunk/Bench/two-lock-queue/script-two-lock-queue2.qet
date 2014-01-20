@@ -1,0 +1,11 @@
+inline all
+nullcheck
+reduce all
+inline NewQueueItem
+reduce all
+invariant IsNull(NULL_QUEUE_ITEM.alloc) && NULL_QUEUE_ITEM.next == NULL_QUEUE_ITEM
+invariant ReachBetween(QueueItem_next, head, tail, NULL_QUEUE_ITEM) && tail.next == NULL_QUEUE_ITEM && IsAlloc(head.alloc) && IsAlloc(tail.alloc) && IsAlloc(headLock.alloc) && IsAlloc(tailLock.alloc)
+invariant (forall node: QueueItem :: ReachBetween(QueueItem_next, head, node, tail) ==> IsAlloc(node.alloc))
+check all block
+simulate Call_4 node := New QueueItem;         node.value := value;          node.next := NULL_QUEUE_ITEM;          t := tail;          t.next := node;          tail := node;
+simulate Call_10 node := head;         newHead := node.next;         if (newHead != NULL_QUEUE_ITEM)         {             x := newHead.value;              head := newHead;         }         else         {             x := NULL_OBJECT;         }         result := x;

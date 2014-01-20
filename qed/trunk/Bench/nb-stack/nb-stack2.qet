@@ -1,0 +1,59 @@
+inline CAS
+reduce all
+aux begin AH [int]Node
+simulate Atomic_4 H[tid]:=t; AH[tid]:= t;
+simulate Atomic_9 H[tid]:=null; AH[tid]:= null;
+skipafter Atomic_5 1
+simulate Atomic_31 AH[tid]:=null;
+aux end AH
+invariant (forall t: int :: AH[t] == null || AH[t] == H[t])
+peelout2 Atomic_2
+peelout2 Atomic_13
+simulate Atomic_2 havoc t; assume t != null;
+simulate Atomic_5 havoc guard_0;
+simulate Atomic_6 havoc n;
+simulate Call_7 havoc guard;
+reduce proc pop
+simulate Atomic_13 assert b != null;             assume guard_1;             havoc h;             assume AH[n] != b;             n := n + 1;             guard_1 := n <= Tid;
+simulate Atomic_11 assert b != null; havoc h,n; assume 1<= n && n <= Tid; assume (forall m:TID :: 1<=m&& m < n ==> AH[m] != b); guard_1 := n <= Tid;
+simulate Atomic_13_dup havoc h; r := false; return;
+reduce loop Atomic_33 assert AH[tid]==null; if(*){ havoc t, n, guard_0, guard; H[tid] := t; }
+assert Atomic_4_dup AH[tid] == null && t != null
+simulate Atomic_11 assert b != null;         havoc h, n;         assume 1 <= n && n <= Tid;         guard_1 := n <= Tid; if(*){ assume (forall m: TID :: 1 <= m && m < n ==> AH[m] != b); } else { r := false; return; }
+prover off
+reduce loop2 Atomic_11
+prover on
+reduce all
+aux begin owner [Node]int
+simulate Atomic_11 assert b != null;         havoc h, n;         assume 1 <= n && n <= Tid;         guard_1 := n <= Tid;         if (*)         {             assume (forall m: TID :: 1 <= m && m < n ==> AH[m] != b);         }         else         {             r := false;             return;         }          if (guard_1)         {             havoc h;             r := false;             return;         } owner[b]:= tid;
+simulate Call_19 assert true;             guard := top == t;             if (guard)             {                 top := b; owner[b]:= 0;             }              if (guard)             {                 break;             }
+aux end owner
+assert Atomic_18 b != null
+invariant null.tl == null
+simulate Call_7_dup assert true;                     /* call guard := CAS(t, n); */                     guard := top == t;                     if (guard)                     { assert top.tl == n;                         top := n;                     }                      if (guard)                     {                         throw ExBreak;                     }
+assert Atomic_18 !ReachBetween(Node_tl, top, b, b)
+simulate Call_19 assert true;             guard := top == t;             if (guard)             { assert b.tl == top;                 top := b;                 owner[b] := 0;             }              if (guard)             {                 break;             }
+invariant ReachBetween(Node_tl, top, null, null)
+simulate Atomic_11 assert b != null;         havoc h, n;         assume 1 <= n && n <= Tid;         guard_1 := n <= Tid;         if (*)         {             assume (forall m: TID :: 1 <= m && m < n ==> AH[m] != b);         }         else         {             r := false;             return;         }          if (guard_1)         {             havoc h;             r := false;             return;         } assert !ReachBetween(Node_tl, top, b, b);         owner[b] := tid;
+invariant (forall t: Node :: ReachBetween(Node_tl, top, t, null) ==> owner[t] == 0)
+assert Atomic_18 owner[b] == tid
+assert Call_19 owner[b] == tid
+simulate Atomic_2_dup havoc t;                  if (t == null)                 {                     throw ExBreak;                 } assume owner[t] == 0;
+reduce all
+simulate Atomic_2_dup havoc t;                 if (t == null)                 {                     throw ExBreak;                 }                  assume owner[t] == 0;                  assert AH[tid] == null && t != null;                 H[tid] := t;                 AH[tid] := t;                  havoc guard_0;
+assert Atomic_6_dup owner[t] == 0
+reduce all
+simulate Atomic_17 havoc t;              assert owner[b] == tid;             assert !ReachBetween(Node_tl, top, b, b);             assert b != null;             b.tl := t;
+reduce proc push
+peelout2 Atomic_17
+simulate Atomic_17 havoc t;             assert owner[b] == tid;             assert !ReachBetween(Node_tl, top, b, b);             assert b != null;             b.tl := t; havoc guard;
+reduce loop Atomic_17 if(*) {havoc t;             assert owner[b] == tid;             assert !ReachBetween(Node_tl, top, b, b);             assert b != null;             b.tl := t;             havoc guard; }
+reduce all
+simulate Atomic_46 
+simulate Atomic_46 assert H[tid] == null;         if (*)         {             havoc t, n, guard_0, guard;             H[tid] := t;         }
+fixmover l Atomic_31_dup
+reduce proc pop
+assert Atomic_31_dup AH[tid] != null && H[tid] != null
+reduce proc pop
+invariant (forall t: int :: H[t] == null)
+check all block

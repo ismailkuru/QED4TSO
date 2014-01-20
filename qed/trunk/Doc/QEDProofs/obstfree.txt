@@ -1,0 +1,34 @@
+rightpush(v) returns r:bool
+ while(true) {
+  k := oracle(right);
+  prev := A[k-1];
+  cur := A[k];
+  if(prev.val != RN && cur.val = RN) {
+   if (k = MAX + 1) { r := false; return; }
+   if (CAS(&A[k-1], prev, <prev.val,prev.ctr+1>))
+    if (CAS(&A[k], cur, <v,cur.ctr+1>))
+     { r := true; return; }
+  }
+ }
+
+----------------------------------------------------------
+abstract reads
+
+rightpush(v) returns r:bool
+ while(true) {
+  k := *;
+  prev := *;
+  cur := *;
+  if(prev.val != RN && cur.val = RN) {
+   if (k = MAX + 1) { r := false; return; }
+   if (CAS(&A[k-1], prev, <prev.val,prev.ctr+1>))
+    if (CAS(&A[k], cur, <v,cur.ctr+1>))
+     { r := true; return; }
+  }
+ }
+
+---------------------------------------------------------
+abstract CAS(a,b)
+from (a==b && a'==a+1) || (a!=b && a'=a)
+to   (a==b && a'==a+n) || (a'=a)
+

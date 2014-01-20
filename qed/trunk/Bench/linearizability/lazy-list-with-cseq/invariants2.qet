@@ -1,0 +1,89 @@
+invariant  Head.key == MIN_INT && Tail.key == MAX_INT
+
+#################
+
+## Representation invariants
+
+invariant  (forall n: Node :: {n.alloc} IsNull(n.alloc) <==> n == null)
+
+invariant  IsAlloc(Head.alloc) && IsAlloc(Tail.alloc) && Tail.next == null && null.next == null && (forall n: Node :: {ReachBetweenSet(Node_next, n, Tail)[Tail]}{n.alloc} IsAlloc(n.alloc) <==> ReachBetweenSet(Node_next, n, Tail)[Tail]) && (forall n: Node :: {n.alloc} !IsAlloc(n.alloc) ==> n.next == n)
+invariant  (forall n: Node :: {n.next} n.next != Head)
+
+invariant  (forall n: Node :: {ReachBetweenSet(Node_next, Head, Tail)[n]}{n.marked} ReachBetweenSet(Node_next, Head, Tail)[n] <==> n.marked == False)
+
+invariant  (forall n, m: Node :: {ReachBetweenSet(Node_next, n, m)[m]}{n.alloc,m.alloc} IsAlloc(n.alloc) && IsAlloc(m.alloc) && n != m && ReachBetweenSet(Node_next, n, m)[m] ==> n.key < m.key)
+
+## these are already implied
+invariant (forall n: Node :: {ReachBetweenSet(Node_next, Head, Tail)[n]} ReachBetweenSet(Node_next, Head, Tail)[n] ==> ReachBetweenSet(Node_next, n, Tail)[Tail])
+invariant (forall n,m: Node :: {ReachBetweenSet(Node_next, n, Tail)[m]} ReachBetweenSet(Node_next, n, Tail)[m] ==> ReachBetweenSet(Node_next, n, m)[m])
+invariant (forall n,m: Node :: {ReachBetweenSet(Node_next, Head, m)[n]} ReachBetweenSet(Node_next, Head, m)[n] ==> ReachBetweenSet(Node_next, n, m)[m])
+
+#################
+
+## History invariants
+
+invariant  (0 <= Hcount)
+
+invariant  Hnext[Hcount] == Node_next && Hmarked[Hcount] == Node_marked && Halloc[Hcount] == Node_alloc
+
+#################
+
+## History versions of the representation invariants above
+
+invariant  (forall i: int, n: Node :: {Halloc[i][n]} IsNull(Halloc[i][n]) <==> n == null)
+
+invariant  (forall i: int :: IsAlloc(Halloc[i][Head]) && IsAlloc(Halloc[i][Tail]) && Hnext[i][Tail] == null && Hnext[i][null] == null)
+invariant  (forall i: int, n: Node :: {ReachBetweenSet(Hnext[i], n, Tail)[Tail]}{Halloc[i][n]} IsAlloc(Halloc[i][n]) <==> ReachBetweenSet(Hnext[i], n, Tail)[Tail])
+invariant  (forall i: int, n: Node :: {Hnext[i][n]}{Halloc[i][n]} !IsAlloc(Halloc[i][n]) ==> Hnext[i][n] == n)
+invariant  (forall i:int, n: Node :: {Hnext[i][n]} Hnext[i][n] != Head)
+
+invariant  (forall i: int, n: Node :: {ReachBetweenSet(Hnext[i], Head, Tail)[n]}{Hmarked[i][n]} ReachBetweenSet(Hnext[i], Head, Tail)[n] <==> Hmarked[i][n] == False)
+
+invariant  (forall i: int, n: Node, m: Node :: {ReachBetweenSet(Hnext[i], n, m)[m]}{Halloc[i][n],Halloc[i][m]} IsAlloc(Halloc[i][n]) && IsAlloc(Halloc[i][m]) && n != m && ReachBetweenSet(Hnext[i], n, m)[m] ==> n.key < m.key)
+
+## these are already implied
+invariant (forall i: int, n: Node :: {ReachBetweenSet(Hnext[i], Head, Tail)[n]} ReachBetweenSet(Hnext[i], Head, Tail)[n] ==> ReachBetweenSet(Hnext[i], n, Tail)[Tail])
+invariant (forall i: int, n,m: Node :: {ReachBetweenSet(Hnext[i], n, Tail)[m]} ReachBetweenSet(Hnext[i], n, Tail)[m] ==> ReachBetweenSet(Hnext[i], n, m)[m])
+invariant (forall i: int, n,m: Node :: {ReachBetweenSet(Hnext[i], Head, m)[n]} ReachBetweenSet(Hnext[i], Head, m)[n] ==> ReachBetweenSet(Hnext[i], n, m)[m])
+
+#################
+
+## if n is alloc and reaches Tail, then later n is still allocated and reaches Tail
+
+invariant (forall i: int, n: Node ::  {ReachBetweenSet(Hnext[i], n, Tail)} 0 <= i && i < Hcount && ReachBetweenSet(Hnext[i], n, Tail)[Tail] ==> ReachBetweenSet(Hnext[i+1], n, Tail)[Tail])
+
+# alredy implied by the invariant above:
+invariant (forall i: int, n: Node ::  {Halloc[i][n]} 0 <= i && i < Hcount && IsAlloc(Halloc[i][n]) ==> IsAlloc(Halloc[i+1][n]))
+
+invariant (forall i,j: int, n: Node ::  {Halloc[i][n],Halloc[j][n]} 0 <= i && i <= j && j <= Hcount && IsAlloc(Halloc[i][n]) ==> IsAlloc(Halloc[j][n]))
+
+# alredy implied by the invariant above:
+invariant (forall i,j: int, n: Node ::  {ReachBetweenSet(Hnext[i], n, Tail)[Tail],ReachBetweenSet(Hnext[j], n, Tail)[Tail]} 0 <= i && i <= j && j <= Hcount && ReachBetweenSet(Hnext[i], n, Tail)[Tail] ==> ReachBetweenSet(Hnext[j], n, Tail)[Tail])
+
+#################
+
+## SPLIT: E is always in the list
+invariant (forall n: Node :: {n.key} n.key == E ==> ReachBetweenSet(Hnext[0], Head, Tail)[n])
+invariant (forall i: int, n: Node ::  {ReachBetweenSet(Hnext[i], Head, Tail)[n]} 0 <= i && i < Hcount && n.key == E && ReachBetweenSet(Hnext[i], Head, Tail)[n] ==> ReachBetweenSet(Hnext[i+1], Head, Tail)[n])
+invariant (forall i,j: int, n: Node ::  {Hmarked[i][n],Hmarked[j][n]} 0 <= i && i <= j && j <= Hcount && n.key == E && Hmarked[i][n] == False ==> Hmarked[j][n] == False)
+
+# alredy implied by the invariant above:
+invariant (forall i,j: int, n: Node ::  {ReachBetweenSet(Hnext[i], Head, Tail)[n],ReachBetweenSet(Hnext[j], Head, Tail)[n]} 0 <= i && i <= j && j <= Hcount && n.key == E && ReachBetweenSet(Hnext[i], Head, Tail)[n] ==> ReachBetweenSet(Hnext[j], Head, Tail)[n])
+
+# actual invariant we need: n.key==E is always in the list
+invariant (forall i: int, n: Node ::  {n.key,Hnext[i]}{ReachBetweenSet(Hnext[i], Head, Tail)[n]} 0 <= i && i < Hcount && n.key == E ==> ReachBetweenSet(Hnext[i], Head, Tail)[n])
+
+#################
+
+## the invariant to discharge the assertions
+invariant (forall i: int, n: Node, m: Node :: {ReachBetweenSet(Hnext[i], n, Tail)[m]} m.key == E && 0 <= i && i < Hcount && ReachBetweenSet(Hnext[i], n, Tail)[m] && ReachBetweenSet(Hnext[i+1], Head, Tail)[m] ==> ReachBetweenSet(Hnext[i+1], n, Tail)[m])
+invariant (forall i,j: int, n: Node, m: Node :: {ReachBetweenSet(Hnext[i], n, Tail)[m],ReachBetweenSet(Hnext[j], Head, Tail)[m]} m.key == E && 0 <= i && i <= j && j <= Hcount && ReachBetweenSet(Hnext[i], n, Tail)[m] && ReachBetweenSet(Hnext[j], Head, Tail)[m] ==> ReachBetweenSet(Hnext[j], n, Tail)[m])
+
+#################
+
+## implied invariants (Ali)
+invariant (forall n,m : Node :: ReachBetweenSet(Node_next, Head, Tail)[m] && m.key==n.key && n != m ==> !ReachBetweenSet(Node_next, Head, Tail)[n])
+invariant (forall n,m : Node :: {ReachBetweenSet(Node_next, m, Tail)[n]} ReachBetweenSet(Node_next, Head, Tail)[m] && ReachBetweenSet(Node_next, m, Tail)[n] && m!=n ==> m.key<n.key)
+invariant (forall n,m : Node :: {ReachBetweenSet(Node_next, m, n)[n]} ReachBetweenSet(Node_next, Head, Tail)[m] && ReachBetweenSet(Node_next, m, n)[n] && m !=n && n != null==> m.key<n.key)
+invariant (forall n,m : Node :: {ReachBetweenSet(Node_next,Head,m)[n]} ReachBetweenSet(Node_next,Head,n)[n] && n.next==m ==> ReachBetweenSet(Node_next,Head,m)[n])
+invariant (forall n,m : Node :: {ReachBetweenSet(Node_next,Head,m)[n]} ReachBetweenSet(Node_next,Head,n)[n] && Node_next[n]==m ==> ReachBetweenSet(Node_next,Head,m)[n])

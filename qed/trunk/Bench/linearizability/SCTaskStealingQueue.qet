@@ -1,0 +1,203 @@
+assert Atomic_18 tid == ownerThread
+assert Atomic_19 tid == ownerThread
+assert Atomic_20 tid == ownerThread
+assert Atomic_21 tid == ownerThread
+assert Atomic_22 tid == ownerThread
+assert Atomic_23 tid == ownerThread
+assert Atomic_24 tid == ownerThread
+assert Atomic_25 tid == ownerThread
+assert Atomic_26 tid == ownerThread
+assert Atomic_27 tid == ownerThread
+assert Atomic_28 tid == ownerThread
+assert Atomic_29 tid == ownerThread
+assert Atomic_30 tid == ownerThread
+assert Atomic_31 tid == ownerThread
+assert Atomic_32 tid == ownerThread
+assert Atomic_33 tid == ownerThread
+assert Atomic_34 tid == ownerThread
+assert Atomic_35 tid == ownerThread
+assert Atomic_36 tid == ownerThread
+assert Atomic_37 tid == ownerThread
+assert Atomic_38 tid == ownerThread
+assert Atomic_39 tid == ownerThread
+assert Atomic_40 tid == ownerThread
+assert Atomic_41 tid == ownerThread
+assert Atomic_42 tid == ownerThread
+assert Atomic_43 tid == ownerThread
+assert Atomic_44 tid == ownerThread
+assert Atomic_45 tid == ownerThread
+assert Atomic_46 tid == ownerThread
+assert Atomic_47 tid == ownerThread
+assert Atomic_48 tid == ownerThread
+assert Atomic_49 tid == ownerThread
+assert Atomic_50 tid == ownerThread
+reduce all
+assume Atomic_53 tid == ownerThread
+reduce all
+assert Atomic_18 tid == ownerThread
+assert Atomic_19 tid == ownerThread
+assert Atomic_20 tid == ownerThread
+assert Atomic_21 tid == ownerThread
+assert Atomic_22 tid == ownerThread
+assert Atomic_23 tid == ownerThread
+assert Atomic_24 tid == ownerThread
+assert Atomic_25 tid == ownerThread
+assert Atomic_26 tid == ownerThread
+assert Atomic_27 tid == ownerThread
+assert Atomic_28 tid == ownerThread
+assert Atomic_29 tid == ownerThread
+assert Atomic_30 tid == ownerThread
+assert Atomic_31 tid == ownerThread
+assert Atomic_32 tid == ownerThread
+assert Atomic_33 tid == ownerThread
+assert Atomic_34 tid == ownerThread
+assert Atomic_35 tid == ownerThread
+assert Atomic_36 tid == ownerThread
+assert Atomic_37 tid == ownerThread
+assert Atomic_38 tid == ownerThread
+assert Atomic_39 tid == ownerThread
+assert Atomic_40 tid == ownerThread
+assert Atomic_41 tid == ownerThread
+assert Atomic_42 tid == ownerThread
+assert Atomic_43 tid == ownerThread
+assert Atomic_44 tid == ownerThread
+assert Atomic_45 tid == ownerThread
+assert Atomic_46 tid == ownerThread
+assert Atomic_47 tid == ownerThread
+assert Atomic_48 tid == ownerThread
+assert Atomic_49 tid == ownerThread
+assert Atomic_50 tid == ownerThread
+reduce all
+simulate Atomic_1 havoc localHead , localTail; assume head >=tail; result:=EMPTY; return;
+simulate Atomic_6 havoc localTail, localHead; assume localHead < localTail; result := tasks[localHead]; assume localHead == head ;
+assert Atomic_19 tid == ownerThread
+assert Atomic_20 tid == ownerThread
+assert Atomic_21 tid == ownerThread
+assert Atomic_22 tid == ownerThread
+assert Atomic_23 tid == ownerThread
+assert Atomic_24 tid == ownerThread
+assert Atomic_25 tid == ownerThread
+assert Atomic_26 tid == ownerThread
+assert Atomic_27 tid == ownerThread
+assert Atomic_28 tid == ownerThread
+assert Atomic_29 tid == ownerThread
+assert Atomic_30 tid == ownerThread
+assert Atomic_31 tid == ownerThread
+assert Atomic_32 tid == ownerThread
+assert Atomic_33 tid == ownerThread
+assert Atomic_34 tid == ownerThread
+assert Atomic_35 tid == ownerThread
+assert Atomic_36 tid == ownerThread
+assert Atomic_37 tid == ownerThread
+assert Atomic_38 tid == ownerThread
+assert Atomic_39 tid == ownerThread
+assert Atomic_40 tid == ownerThread
+assert Atomic_41 tid == ownerThread
+assert Atomic_42 tid == ownerThread
+assert Atomic_43 tid == ownerThread
+assert Atomic_44 tid == ownerThread
+assert Atomic_45 tid == ownerThread
+assert Atomic_46 tid == ownerThread
+assert Atomic_47 tid == ownerThread
+assert Atomic_48 tid == ownerThread
+assert Atomic_49 tid == ownerThread
+assert Atomic_50 tid == ownerThread
+assert Atomic_51 tid == ownerThread
+reduce all
+assert Atomic_19 tid == ownerThread
+assert Atomic_20 tid == ownerThread
+assert Atomic_21 tid == ownerThread
+assert Atomic_22 tid == ownerThread
+assert Atomic_23 tid == ownerThread
+assert Atomic_24 tid == ownerThread
+assert Atomic_25 tid == ownerThread
+assert Atomic_26 tid == ownerThread
+assert Atomic_27 tid == ownerThread
+assert Atomic_28 tid == ownerThread
+assert Atomic_29 tid == ownerThread
+assert Atomic_30 tid == ownerThread
+assert Atomic_31 tid == ownerThread
+assert Atomic_32 tid == ownerThread
+assert Atomic_33 tid == ownerThread
+assert Atomic_34 tid == ownerThread
+assert Atomic_35 tid == ownerThread
+assert Atomic_36 tid == ownerThread
+assert Atomic_37 tid == ownerThread
+assert Atomic_38 tid == ownerThread
+assert Atomic_39 tid == ownerThread
+assert Atomic_40 tid == ownerThread
+assert Atomic_41 tid == ownerThread
+assert Atomic_42 tid == ownerThread
+assert Atomic_43 tid == ownerThread
+assert Atomic_44 tid == ownerThread
+assert Atomic_45 tid == ownerThread
+assert Atomic_46 tid == ownerThread
+assert Atomic_47 tid == ownerThread
+assert Atomic_48 tid == ownerThread
+assert Atomic_49 tid == ownerThread
+assert Atomic_50 tid == ownerThread
+assert Atomic_51 tid == ownerThread
+reduce all
+assert Atomic_19 tid == ownerThread
+assert Atomic_20 tid == ownerThread
+simulate Atomic_6 havoc localHead ; havoc localTail;
+reduce all
+simulate Atomic_10 assert localHead < localTail; assert localHead == head; result := tasks[localHead]; return;
+simulate Atomic_10 assume localHead < localTail; assume localHead == head; result := tasks[localHead]; return;
+simulate Atomic_13 havoc localHead ; havoc localTail;
+simulate Atomic_10 havoc result ;  assume result == tasks[localHead]; return;
+simulate Atomic_10 havoc result ; assert localHead < localTail; assert localHead == head ; assume result == tasks[localHead]; return;
+simulate Atomic_10 havoc result ; assume localHead < localTail; assume localHead == head ; assume result == tasks[localHead]; return;
+simulate Atomic_10 havoc result ;  assume localHead < localTail && localHead == head  ==>result == tasks[localHead]; return;
+simulate Atomic_10 havoc result ;  assume localHead < localTail && localHead == head  ==>result == tasks[localHead]; return;
+assert Atomic_2 tid != ownerThread
+assert Atomic_3 tid != ownerThread
+assert Atomic_4 tid != ownerThread
+assert Atomic_5 tid != ownerThread
+assert Atomic_6 tid != ownerThread
+assert Atomic_20 tid == ownerThread
+assert Atomic_21 tid == ownerThread
+assert Atomic_22 tid == ownerThread
+assert Atomic_24 tid == ownerThread
+assert Atomic_25 tid == ownerThread
+assert Atomic_26 tid == ownerThread
+assert Atomic_27 tid == ownerThread
+assert Atomic_28 tid == ownerThread
+assert Atomic_29 tid == ownerThread
+assert Atomic_30 tid == ownerThread
+assert Atomic_31 tid == ownerThread
+assert Atomic_32 tid == ownerThread
+assert Atomic_33 tid == ownerThread
+assert Atomic_34 tid == ownerThread
+assert Atomic_35 tid == ownerThread
+assert Atomic_36 tid == ownerThread
+assert Atomic_37 tid == ownerThread
+assert Atomic_38 tid == ownerThread
+assert Atomic_39 tid == ownerThread
+assert Atomic_40 tid == ownerThread
+assert Atomic_41 tid == ownerThread
+assert Atomic_42 tid == ownerThread
+assert Atomic_43 tid == ownerThread
+assert Atomic_44 tid == ownerThread
+assert Atomic_45 tid == ownerThread
+assert Atomic_46 tid == ownerThread
+assert Atomic_47 tid == ownerThread
+assert Atomic_48 tid == ownerThread
+assert Atomic_49 tid == ownerThread
+assert Atomic_50 tid == ownerThread
+assert Atomic_51 tid == ownerThread
+assert Atomic_52 tid == ownerThread
+assert Atomic_53 tid == ownerThread
+skip Atomic_8@steal
+skip Atomic_8
+reduce all
+aux begin poped [int]bool
+aux begin stolen [int]bool
+aux begin pushed [int]bool
+simulate Atomic_6 havoc localHead; havoc localTail; skip;
+simulate Atomic_6 havoc localHead; havoc localTail;
+simulate Atomic_6 havoc localHead; havoc localTail; havoc result ; assume result == tasks[localHead];
+simulate Atomic_11 havoc head ; assert localHead == head; assume head == localHead +1;
+simulate Atomic_13 havoc localHead ; havoc localTail; assume result == ABORT;
+simulate Atomic_13 havoc localHead ; havoc localTail; havoc result; assume result == ABORT;
+reduce all

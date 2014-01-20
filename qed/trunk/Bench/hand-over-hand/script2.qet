@@ -1,0 +1,45 @@
+inline all
+mutexptr aux (forall x: Node :: x.lock == True)
+assert Atomic_5@Find IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_6@Find n == null || IsAlloc(n.alloc)
+assert Atomic_10@Find IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_11@Find n == null || IsAlloc(n.alloc)
+assert Atomic_14@Insert IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_15@Insert n == null || IsAlloc(n.alloc)
+assert Atomic_19@Insert IsAlloc(p.alloc) && aux[p] == tid
+reduce all
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> IsAlloc(node.alloc)) && (forall list: List :: ReachBetween(Node_next, list.head, null, null))
+simulate Atomic_3@Find havoc p; assume ReachBetween(Node_next, list.head, p, null) && p != null; assume (forall k:Node :: (ReachBetween(Node_next, list.head.next, k, null) && (!ReachBetween(Node_next, p.next, k, null)) && (k != null)) ==> (k.val < x)); assume p.lock == False; p.lock := True; aux[p] := tid; n := p.next; assert n == null || IsAlloc(n.alloc);  guard := n != null && n.val < x;
+reduce loop2 Atomic_3@Find
+reduce all
+simulate Atomic_3@Find havoc p;         assume ReachBetween(Node_next, list.head, p, null) && p != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);         assume p.lock == False;         p.lock := True;         aux[p] := tid;         n := p.next;         assert n == null || IsAlloc(n.alloc);        guard := n != null && n.val < x; assume !guard; node := p;
+inline all
+mover proc Insert
+merge proc Insert
+check Insert block
+invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head.next, e, null) && ReachBetween(Node_next, e, f, null) && e != null && f != null && e != f ==> e.val < f.val)
+simulate Call_13@Insert if ((forall e:Node :: ReachBetween(Node_next, list.head.next, e, null) && e != null ==> e.val != x)) {       havoc p;    assume ReachBetween(Node_next, list.head, p, null) && p != null;       assume (p == list.head || p.val < x) && (p.next == null || x < p.next.val);       t := New Node;       t.val := x;       t.next := p.next;       p.next := t;       wasPresent := false;     } else {       wasPresent := true;     } havoc fresh_0, fresh_1, fresh_2, guard_0;
+simulate Call_13@Insert havoc fresh_0;         assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_0.next, k, null) && k != null ==> k.val < x);         fresh_1 := fresh_0.next;         fresh_2 := fresh_1 != null && fresh_1.val < x;         assume !fresh_2;         p := fresh_0;          n := p.next;          guard_0 := n == null || n.val > x;          if (guard_0)         {             t := New Node;              t.val := x;              t.next := n;              p.next := t;              wasPresent := false;         }         else         {             wasPresent := true;         }
+simulate Call_13@Insert havoc p;         assume ReachBetween(Node_next, list.head, p, null) && p != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);         n := p.next;         assume !(n != null && n.val < x);         if(n == null || n.val > x)         {             t := New Node;              t.val := x;              t.next := n;              p.next := t;              wasPresent := false;         }         else         {             wasPresent := true;         }  havoc fresh_0, fresh_1, fresh_2, guard_0;
+inline all
+mutexptr aux (forall x: Node :: x.lock == True)
+assert Atomic_5@Find IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_6@Find n == null || IsAlloc(n.alloc)
+assert Atomic_10@Find IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_11@Find n == null || IsAlloc(n.alloc)
+assert Atomic_14@Insert IsAlloc(p.alloc) && aux[p] == tid
+assert Atomic_15@Insert n == null || IsAlloc(n.alloc)
+assert Atomic_19@Insert IsAlloc(p.alloc) && aux[p] == tid
+reduce all
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> IsAlloc(node.alloc)) && (forall list: List :: ReachBetween(Node_next, list.head, null, null))
+simulate Atomic_3@Find havoc p; assume ReachBetween(Node_next, list.head, p, null) && p != null; assume (forall k:Node :: (ReachBetween(Node_next, list.head.next, k, null) && (!ReachBetween(Node_next, p.next, k, null)) && (k != null)) ==> (k.val < x)); assume p.lock == False; p.lock := True; aux[p] := tid; n := p.next; assert n == null || IsAlloc(n.alloc);  guard := n != null && n.val < x;
+reduce loop2 Atomic_3@Find
+reduce all
+simulate Atomic_3@Find havoc p;         assume ReachBetween(Node_next, list.head, p, null) && p != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);         assume p.lock == False;         p.lock := True;         aux[p] := tid;         n := p.next;         assert n == null || IsAlloc(n.alloc);        guard := n != null && n.val < x; assume !guard; node := p;
+inline all
+mover proc Insert
+merge proc Insert
+check Insert block
+simulate Call_13 havoc fresh_0;         assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_0.next, k, null) && k != null ==> k.val < x);         fresh_1 := fresh_0.next;         fresh_2 := fresh_1 != null && fresh_1.val < x;         assume !fresh_2;         p := fresh_0;          n := p.next;         guard_0 := n == null || n.val > x;         if (guard_0)         {             t := New Node;             t.val := x;             t.next := n;             p.next := t;             wasPresent := false;         }         else         {             wasPresent := true;         }
+simulate Call_13 havoc p;         assume ReachBetween(Node_next, list.head, p, null) && p != null;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);         n := p.next;         assume !(n != null && n.val < x);         if (n == null || n.val > x)         {             t := New Node;             t.val := x;             t.next := n;             p.next := t;             wasPresent := false;         }         else         {             wasPresent := true;         } havoc fresh_0,fresh_1,fresh_2,guard_0;
+invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head.next, e, null) && ReachBetween(Node_next, e, f, null) && e != null && f != null && e != f ==> e.val < f.val)

@@ -1,0 +1,317 @@
+ReentrantLock
+--------------
+Inner classes:
+	- Sync (abstract) extends AbstractQueuedSynchronizer (AQS) extends AbstractOwnableSynchronizer (AOS)
+	- FairSync extends Sync
+	- UnfairSync extends Sync
+
+----------
+Methods:
+	- ReentrantLock()
+		uses	new NonfairSync() (NonfairSync)
+		
+	- ReentrantLock(boolean fair)
+		uses	new NonfairSync() (NonfairSync)
+				new FairSync() (FairSync)
+				
+	- void lock()
+		uses	lock()	(Sync)
+		
+	- void lockInterruptibly() throws InterreptedException
+		uses 	acquireInterruptibly() (Sync - AQS)
+		
+	- boolean tryLock()
+		uses	nonfairTryAcquire() (Sync)
+		
+	- boolean tryLock(long timeOut, TimuUnit unit) throws InterruptedException
+		uses 	tryAcquireNanos() (Sync - AQS)
+		
+	- void unlock()
+		uses 	release() (Sync - AQS)
+		
+	- Condition newCondition()
+		uses 	newCondition() (Sync)
+	
+	- int getHoldCount()
+		uses 	getHoldCound() (Sync)
+		
+	- boolean isHeldExclusively()
+		uses 	isHeldExclusively(Sync)
+		
+	- boolean isLocked()
+		uses 	isLocked() (Sync)
+		
+	- boolean isFair()
+		uses 	instanceof ???
+		
+	- Thread getOwner()
+		uses 	getOwner() (Sync)
+		
+	- boolean hasQueuedThreads()
+		uses 	hasQueuedThread() (Sync - AQS)
+		
+	- hasQueuedThread(Thread thread)
+		uses 	isQueued() (Sync - AQS)
+	
+	- int getQueueLength()
+		uses	getQueueLength() (Sync - AQS)
+	
+	- Collection <Thread> getQueuedThreads()
+		uses	getQueuedThreads() (Sync - AQS)
+		
+	- boolean hasWaiters(Condition condition)
+		uses	hasWaiters() (Sync - AQS)
+				instanceof ???
+				new IllegalArgumentException
+				new NullPointerException() (NullPointerException)
+				
+	- int getWaitQueueLength(Condition condition)
+		uses	getWaitQueueLength() (Sync - AQS)
+				intanceof ???
+				new NullPointerException
+				new IllegalArgumentException
+				
+		
+	- Collection <Thread> getWaitingThreads(Condition condition)
+		uses	getWaitingThreads() (Sync - AQS)
+				intanceof ???
+				new NullPointerException()
+				new IllegalArgumentException()
+					
+	- String toString()
+		uses	getOwner() (Sync - AOS)
+	
+Sync
+---------------
+Methods:
+	- abstract void lock()
+	- boolean nonfairTryAcquire(int acquires)
+		uses	Thread.currentThread() (Thread)
+				getState() (AQS)
+				compareAndSetState() (AQS)
+				setExclusiveOwnerThread() (AOS)
+				getExclusiveOwnerThread() (AOS)
+				setState() (AQS)
+				new Error() (Error) 
+				
+	- boolean tryRelease()
+		uses	getState() (AQS)
+				Thread.currentThread() (Thread)
+				getExclusiveOwnerThread() (AOS)
+				setExclusiveOwnerThread() (AOS)
+				setState() (AQS)
+				
+	- boolean isHeldExclusively()
+		uses	getExclusiveOwnerThread() (AOS)
+				Thread.currentThread() (Thread)
+				new IllegalMonitorStateException()
+				
+	- ConditionObject newCondition()
+		uses	new ConditionObject() (ConditionObject)
+				
+	- Thread getOwner()
+		uses	getState() (AQS)
+				getExclusiveOwnerThread() (AOS)
+				
+	- int getHoldCount()
+		uses	isHeldExclusively() (Sync)
+				getState() (AQS)
+				
+	- boolean isLocked()
+		uses	getState() (AQS)
+				
+	- void readObject(java.io.ObjectInputStream s)
+		uses	defaultReadObject() (ObjectInputStream)
+				setState() (AQS)
+	
+NonfairSync
+--------------
+Methods:
+	- void lock()
+		uses	compareAndSetState() (AQS)
+				setExclusiveOwnerThread() (AOS)
+				Thread.currentThread() (Thread)
+				acquire() (AQS)
+				
+	- boolean tryAcquire(int acquires)
+		uses	nonfairTryAcquire() (Sync)
+
+FairSync
+------------
+Methods:
+	- void lock()
+		uses	acquire() (AQS)
+		
+	- boolean tryAcquire(int acquires)
+		uses	Thread.currentThread() (Thread)
+				getState() (AQS)
+				isFirst() (AQS)	
+				compareAndSetState() (AQS)
+				setExclusiveOwnerThread() (AOS)
+				getExclusiveOwnerThread() (AOS)
+				setState() (AQS)
+				new Error() (Error)
+	
+AbstractQueuedSynchronizer
+--------------------------
+Methods:
+	- int getState()
+		uses	nothing
+		
+	- boolean compareAndSetState(int expect, int update)
+		uses	compareAndSwapInt() (Unsafe)
+		
+	- void setState(int state)
+		uses	nothing
+		
+	- void acquire(int arg)
+		uses	tryAcquire() (Sync)
+				acquireQueued() (AQS)
+				addWaiter() (AQS)
+				selfInterrupt() 
+		
+	- boolean isFirst(Thread current)
+		uses	fullIsFirst() (AQS)	
+		
+	- void acquireInterruptibly(int arg) throws InterruptedException
+		uses	tryAcquire() (Sync)
+				doAcquireInterruptibly() (AQS)
+				Thread.interrupted() (Thread)
+				new InterruptedException()
+				
+		
+	- boolean tryAcquireNanos(int arg, long nanosTimeout) throws InterruptedException
+		uses	tryAcquire() (Sync)
+				doAcquireNanos() (AQS)
+				Thread.interrupted() (Thread)
+				new InterruptedException()
+	
+	- boolean release(int arg)
+		uses	tryRelease() (Sync)
+				unparkSuccessor() (AQS)
+		
+	- boolean hasQueuedThreads()
+		uses 	nothing
+		
+	- boolean isQueued(Thread thread)
+		uses 	new NullPointerException() 
+				
+	- int getQueuedLength()
+		uses	nothing
+		
+	- Collection <Thread> getQueuedThreads()
+		uses	new ArrayList()
+				add() (ArrayList)
+	
+	- boolean hasWaiters(ConditionObject condition)
+		uses	owns() (AQS)
+				hasWaiters() (ConditionObject)
+				new IllegalArgumentException()
+		
+	- int getWaitQueueLength(ConditionObject condition)
+		uses	owns() (AQS)
+				getWaitQueueLength() (ConditionObject)
+				new IllegalArgumentException()
+		
+	- Collection <Thread> getWaitingThreads(ConditionObject condition)
+		uses	owns() (AQS)
+				getWaitingThreads() (ConditionObject)
+				new IllegalArgumentException()
+		
+	- package boolean acquireQueued(final Node node, int arg)
+		uses	addWaiter() (AQS)
+				tryAcquire() (Sync)
+				setHead() (AQS)
+				shouldParkAfterFailedAcquire() (AQS)
+				parkAndCheckInterrupt() (AQS)
+				cancelAcquire() (AQS)
+				try & catch
+		
+	- private Node addWaiter(Node mode)
+		uses	compareAndSetTail() (AQS)
+				enq() (AQS)
+				
+			
+	- static void selfIntterrupt()
+		uses	Thread.currentThread() (Thread)
+				intterrupt() (Thread)
+				
+	- package boolean fullIsFirst(Thread current)
+		uses	nothing
+		
+	- private boolean doAcquireNanos(int arg, long nanosTimeout)
+		uses	addWaiter() (AQS)
+				tryAcquire() (Sync)
+				setHead() (AQS)
+				cancelAcquire() (AQS)
+				shouldParkAfterFailedAcquire() (AQS)
+				LockSupport.partNanos() (LockSupport)
+				Thread.intterrupted() (Thread)
+				System.nanoTime() (System)
+				new InterruptedException
+				
+	- private void unparkSuccessor(Node node)
+		uses	compareAndSetWaitStatus() (AQS)	
+				LockSupport.unpark() (LockSupport)
+		
+	- boolean owns(ConditionObject condition)
+		uses	new NullPointerException()
+				isOwnedBy() (ConditionObject)
+				
+	- setHead(Node mode)
+	 	uses 	nothing
+	
+	- private static shouldParkAfterFailedAcquire(Node pred, Node node)
+		uses	compareAndSetWaitStatus() (AQS)
+		
+	- private boolean parkAndCheckInterrupt()
+		uses 	LockSupport.park() (LockSupport)
+				Thread.interrupted() (Thread)
+				
+	- private void cancelAcquire(Node node)
+		uses	compareAndSetTail() (AQS)
+				compareAndSetNext() (AQS)
+				unparkSuccessor() (AQS)
+				
+	- private Node enq(final Node node)
+		uses	compareAndSetHead() (AQS)
+				compareAndSetTail() (AQS)
+				new Node()
+				
+	- private boolean compareAndSetHead(Node update)
+		uses	compareAndSwapObject() (Unsafe)
+		
+	- private boolean compareAndSetNext(Node node, Node expect, Node update) 
+		uses 	compareAndSwapObject() (Unsafe)
+		
+	- private boolean compareAndSetTail(Node expect, Node update)
+		uses	compareAndSwapObject() (Unsafe)
+		
+	- private static boolean compareAndSetWaitStatus(Node node, int expect, int update)
+		uses	compareAndSwapInt() (Unsafe)
+	
+AbstractOwnableSynchronizer
+----------------------------
+Methods:
+	- void setExclusiveOwnerThread(Thread t)
+		uses	nothing
+		
+	- Thread getExclusiveOwnerThread()
+		uses	nothing
+		
+Unsafe (all implemented natively)
+-----------------------------
+Methods:
+	- boolean compareAndSwapInt(Object o, long offset, int expected, int x)
+	- boolean compareAndSwapObject(Object o, long offset, Object expected, Object x)
+	
+
+Note: Must model whole inner Node class in AQS.	
+Note: Thread.currentThread() is implemented natively.
+Note: How to model instanceof ?
+Note: How to model threads? Will only a tid be sufficient?
+Note: How to model ArrayList and Collections?
+Note: How to model try & catch? How to model Exceptions?
+Note: Something new as LockSupport. I think that we have to model this. (does the park and unpark operations)
+
+

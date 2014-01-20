@@ -1,0 +1,110 @@
+inline read
+inline write
+inline singleDrain
+aux begin ownerMap [int]TID
+
+assert Call_52 recvThread == tid 
+assert Call_52 ThreadWriteBuffers[senderThread].head+2 == ThreadWriteBuffers[senderThread].tail ==> Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].value == toRecv && flagLocal == toSend &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag
+assert Call_52 ThreadWriteBuffers[senderThread].head+1==ThreadWriteBuffers[senderThread].tail ==>Mem[addrFlag] == toSend &&	ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrX] == toRd	&&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRecv && flagLocal ==toSend && ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrFlag 
+assert Call_52 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail ==>	Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && Mem[addrX] == toRd && ownerMap[addrX] == recvThread
+assert Atomic_53 recvThread == tid 
+assert Atomic_53 ThreadWriteBuffers[senderThread].head+2 == ThreadWriteBuffers[senderThread].tail ==> 	Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].value == toRecv && flagLocal == toSend &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag
+assert Atomic_53 ThreadWriteBuffers[senderThread].head+1==ThreadWriteBuffers[senderThread].tail ==>	Mem[addrFlag] == toSend &&	ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrX] == toRd	&&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRecv && flagLocal ==toSend && ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrFlag 
+assert Atomic_53 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail ==>Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && Mem[addrX] == toRd && ownerMap[addrX] == recvThread
+
+assert Call_54 recvThread == tid
+assert Call_54 Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && flagLocal == toRecv && Mem[addrX] == toRd
+assert Call_54 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+assert Call_54 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail
+
+reduce loop Call_54@recieve 	var newHead : int;	assert recvThread == tid;	assert Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && flagLocal == toRecv && Mem[addrX] == toRd;assert ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail;	assert ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail;havoc Mem;	havoc newHead;	assume fresh_6 == ThreadWriteBuffers[recvThread];	assume fresh_6.head <= fresh_6.tail;assume fresh_6.head <= newHead && newHead <= fresh_6.tail;	assume 	Mem[addrFlag] == UpdateMemSEG(Mem,fresh_6.writebuffer,fresh_6.head,newHead,Node_addr, Node_value)[addrFlag];assume 	Mem[addrX] == UpdateMemSEG(Mem,fresh_6.writebuffer,fresh_6.head,newHead,Node_addr, Node_value)[addrX];
+
+
+assert Call_55 recvThread == tid
+assert Call_55 Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && flagLocal == toRecv && Mem[addrX] == toRd
+assert Call_55 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+assert Call_55 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail
+
+assert Call_56 recvThread == tid 
+assert Call_56 Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == toRd
+assert Call_56 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+assert Call_56 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail 
+assert Call_56 result == Mem[addrX]
+
+
+reduce loop Call_56@recieve	var newHead1 : int;	assert recvThread == tid ;		assert Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == toRd;assert ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail;	assert ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail ;assert result == Mem[addrX];	havoc Mem;	havoc newHead1;		assume fresh_7 == ThreadWriteBuffers[recvThread];assume fresh_7.head <= fresh_7.tail;	assume fresh_7.head <= newHead1 && newHead1 <= fresh_7.tail;		assume 	Mem[addrFlag] == UpdateMemSEG(Mem,fresh_7.writebuffer,fresh_7.head,newHead1,Node_addr, Node_value)[addrFlag];assume 	Mem[addrX] == UpdateMemSEG(Mem,fresh_7.writebuffer,fresh_7.head,newHead1,Node_addr, Node_value)[addrX];
+
+
+
+
+assert Call_57 recvThread == tid 
+assert Call_57 Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == toRd
+assert Call_57 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+assert Call_57 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail 
+assert Call_57 result == Mem[addrX]
+	
+assert Call_58 recvThread == tid 
+assert Call_58 Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && flagLocal == toRecv && Mem[addrX] == toRd
+assert Call_58 ThreadWriteBuffers[recvThread].head < ThreadWriteBuffers[recvThread].tail && ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head + 1
+assert Call_58 ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].addr == addrFlag
+assert Call_58 ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].value == toSend
+assert Call_58 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail
+
+reduce loop Call_58@recieve var newHead2 : int;assert recvThread == tid ;assert Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && flagLocal == toRecv && Mem[addrX] == toRd;assert ThreadWriteBuffers[recvThread].head < ThreadWriteBuffers[recvThread].tail && ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head + 1;assert ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].addr == addrFlag;assert ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].value == toSend;assert ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail;havoc Mem;havoc newHead2;assume fresh_8 == ThreadWriteBuffers[recvThread];assume fresh_8.head <= fresh_8.tail;assume fresh_8.head <= newHead2 && newHead2 <= fresh_8.tail;assume Mem[addrFlag] == UpdateMemSEG(Mem,fresh_8.writebuffer,fresh_8.head,newHead2,Node_addr, Node_value)[addrFlag];assume Mem[addrX] == UpdateMemSEG(Mem,fresh_8.writebuffer,fresh_8.head,newHead2,Node_addr, Node_value)[addrX]; 
+	
+
+assert Call_45 senderThread == tid
+assert Call_45 ThreadWriteBuffers[recvThread].head+1==ThreadWriteBuffers[recvThread].tail ==>	Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == toRd	&&ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].value == toSend && flagLocal ==toRecv && ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].addr == addrFlag 
+	
+assert Call_45 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail ==>Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && Mem[addrX] == toRd && ownerMap[addrX] == senderThread
+
+assert Atomic_46 senderThread == tid
+assert Atomic_46 ThreadWriteBuffers[recvThread].head+1==ThreadWriteBuffers[recvThread].tail ==>	Mem[addrFlag] == toRecv && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == toRd	&&ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].value == toSend && flagLocal ==toRecv && ThreadWriteBuffers[recvThread].writebuffer[ThreadWriteBuffers[recvThread].head].addr == addrFlag 
+	
+assert Atomic_46 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail ==>Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && Mem[addrX] == toRd && ownerMap[addrX] == senderThread
+
+assert Call_47 senderThread == tid
+assert Call_47 Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend
+assert Call_47 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail
+assert Call_47 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+
+
+reduce loop Call_47@send var newHead : int;assert  senderThread == tid;assert Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend;assert ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head;assert ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head;	havoc Mem;havoc newHead;assume fresh_6 == ThreadWriteBuffers[senderThread];	assume fresh_6.head <= fresh_6.tail;	assume fresh_6.head <= newHead && newHead <= fresh_6.tail;assume 	Mem[addrFlag] == UpdateMemSEG(Mem,fresh_6.writebuffer,fresh_6.head,newHead,Node_addr, Node_value)[addrFlag]; 	assume 	Mem[addrX] == UpdateMemSEG(Mem,fresh_6.writebuffer,fresh_6.head,newHead,Node_addr, Node_value)[addrX];  
+
+assert Call_48 senderThread == tid
+assert Call_48 Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend
+assert Call_48 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail
+assert Call_48 ThreadWriteBuffers[recvThread].head == ThreadWriteBuffers[recvThread].tail
+
+assert Call_49 senderThread == tid 
+assert Call_49 Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend
+assert Call_49 ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail && ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head + 1
+assert Call_49 ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX
+assert Call_49 ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd
+assert Call_49 ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head
+
+reduce loop Call_49@send var newHead1 : int;		assert senderThread == tid; 	assert Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend;assert ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail && ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head + 1;assert ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX;	assert ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd;assert ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head;	havoc Mem;	havoc newHead1;	assume fresh_7 == ThreadWriteBuffers[senderThread];assume fresh_7.head <= fresh_7.tail;	assume fresh_7.head <= newHead1 && newHead1 <= fresh_7.tail;	assume 	Mem[addrFlag] == UpdateMemSEG(Mem,fresh_7.writebuffer,fresh_7.head,newHead1,Node_addr, Node_value)[addrFlag];assume 	Mem[addrX] == UpdateMemSEG(Mem,fresh_7.writebuffer,fresh_7.head,newHead1,Node_addr, Node_value)[addrX];
+ 	
+assert Call_50 senderThread == tid 
+assert Call_50 Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend
+assert Call_50 ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail ==> ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head + 1
+assert Call_50 ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail ==> ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX
+assert Call_50 ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail ==> ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd
+assert Call_50 ThreadWriteBuffers[senderThread].head == ThreadWriteBuffers[senderThread].tail ==> Mem[addrX] == toRd
+assert Call_50 ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head 
+	
+assert Call_51 senderThread == tid 
+assert Call_51 Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend
+
+assert Call_51 ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail 
+
+assert Call_51 ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head+2 ==> ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag && ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].value == toRecv &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd
+	
+assert Call_51 ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head+1 ==> ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrFlag &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRecv &&Mem[addrX] == toRd
+assert Call_51 ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag
+assert Call_51 ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head
+
+reduce loop Call_51@send var newHead2 : int;assert senderThread == tid ;	assert Mem[addrFlag] == toSend && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == toSend;assert ThreadWriteBuffers[senderThread].head < ThreadWriteBuffers[senderThread].tail ;	assert ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head+2 ==> ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag && 		ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].value == toRecv &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrX &&		ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRd;assert ThreadWriteBuffers[senderThread].tail == ThreadWriteBuffers[senderThread].head+1 ==> 		ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].addr == addrFlag &&ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].head].value == toRecv &&	Mem[addrX] == toRd;	assert ThreadWriteBuffers[senderThread].writebuffer[ThreadWriteBuffers[senderThread].tail-1].addr == addrFlag;assert ThreadWriteBuffers[recvThread].tail == ThreadWriteBuffers[recvThread].head;	havoc Mem;havoc newHead2;assume fresh_8 == ThreadWriteBuffers[senderThread];	assume fresh_8.head <= fresh_8.tail;	assume fresh_8.head <= newHead2 && newHead2 <= fresh_8.tail;	assume 	Mem[addrFlag] == UpdateMemSEG(Mem,fresh_8.writebuffer,fresh_8.head,newHead2,Node_addr, Node_value)[addrFlag]; assume 	Mem[addrX] == UpdateMemSEG(Mem,fresh_8.writebuffer,fresh_8.head,newHead2,Node_addr, Node_value)[addrX];
+	
+	
+reduce all

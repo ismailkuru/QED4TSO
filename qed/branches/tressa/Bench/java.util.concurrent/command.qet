@@ -1,0 +1,247 @@
+inline all
+mover Atomic_18
+hoist Atomic_18 after
+mover Atomic_18
+simulate Atomic_18 havoc t; assume t == NULL_NODE;
+mover Atomic_18
+merge proc AQS_enq
+mover Atomic_18
+reduce proc AQS_enq
+mover Atomic_18
+assert Atomic_7 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_8 this.alloc == Alloc
+assert Atomic_9 this.alloc == Alloc
+assert Atomic_10 this.alloc == Alloc
+assert Atomic_11 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_12 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_21 h.alloc == Alloc
+mover Atomic_18
+assert Atomic_22 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_27 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_154 t.alloc == Alloc
+mover Atomic_18
+assert Atomic_41 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_43 pred.alloc == Alloc
+mover Atomic_18
+assert Call_48 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_49 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_50 s != NULL_NODE ==> s.alloc == Alloc
+mover Atomic_18
+assert Atomic_54 t != NULL_NODE ==> t.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+mover Atomic_18
+mover Atomic_18
+assert Atomic_54 t.alloc == Alloc
+assert Atomic_54 t != NULL_NODE ==> t.alloc == Alloc
+mover Atomic_18
+assert Atomic_54 t.alloc == Alloc
+assert Atomic_56 t.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+assert Atomic_61 h != NULL_NODE ==> h.alloc == Alloc
+mover Atomic_18
+assert Atomic_64 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_65 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_65 pred.alloc == Alloc
+assert Atomic_66 pred.alloc == Alloc
+assert Atomic_67 node.alloc == Alloc
+assert Atomic_68 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_69 predNext != NULL_NODE ==> predNext.alloc == Alloc
+mover Atomic_18
+assert Atomic_69 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_70 node.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+assert Atomic_73 pred.alloc == Alloc
+assert Call_73 pred.alloc == Alloc
+mover Atomic_18
+assert Call_76 pred.alloc == Alloc
+mover Atomic_18
+assert Call_75 pred.alloc == Alloc
+assert Atomic_75 pred.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+assert Atomic_73 pred.alloc == Alloc
+assert Call_73 pred.alloc == Alloc
+mover Atomic_18
+assert Call_76 pred.alloc == Alloc
+mover Atomic_18
+assert Call_75 pred.alloc == Alloc
+assert Atomic_75 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_77 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_78 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_79 next != NULL_NODE ==> next.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+assert Atomic_73 pred.alloc == Alloc
+assert Call_73 pred.alloc == Alloc
+mover Atomic_18
+assert Call_76 pred.alloc == Alloc
+mover Atomic_18
+assert Call_75 pred.alloc == Alloc
+assert Atomic_75 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_77 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_78 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_79 next != NULL_NODE ==> next.alloc == Alloc
+mover Atomic_18
+assert Call_80 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_82 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_103 pred.alloc == Alloc
+mover Atomic_18
+mover Atomic_18
+assert Atomic_73 pred.alloc == Alloc
+assert Call_73 pred.alloc == Alloc
+mover Atomic_18
+assert Call_76 pred.alloc == Alloc
+mover Atomic_18
+assert Call_75 pred.alloc == Alloc
+assert Atomic_75 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_77 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_78 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_79 next != NULL_NODE ==> next.alloc == Alloc
+mover Atomic_18
+assert Call_80 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_82 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_103 pred.alloc == Alloc
+mover Atomic_18
+assert Atomic_106 pred_dup.alloc == Alloc
+assert Atomic_107 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_108 pred_dup.alloc == Alloc
+mover Atomic_18
+assert Atomic_109 pred_dup.alloc == Alloc
+assert Atomic_110 node.alloc == Alloc
+assert Atomic_111 pred_dup.alloc == Alloc
+mover Atomic_18
+assert Atomic_112 pred_dup.alloc == Alloc
+mover Atomic_18
+assert Atomic_114 pred.alloc == Alloc
+assert Call_114 pred.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+inline all
+mover Atomic_18
+assert Atomic_92 p.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+inline all
+mover Atomic_18
+assert Atomic_92 p.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+aux intro owner [Node]int
+aux remove owner
+mover Atomic_18
+assert Atomic_10 owner[this] == tid
+mover Atomic_18
+assert Atomic_18 owner[node] == tid
+mover Atomic_18
+inline all
+mover Atomic_18
+assert Atomic_92 p.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+aux intro owner [Node]int
+aux remove owner
+mover Atomic_18
+assert Atomic_10 owner[this] == tid
+mover Atomic_18
+assert Atomic_18 owner[node] == tid
+mover Atomic_18
+assert Atomic_12 owner[this] == tid
+mover Atomic_18
+assert Atomic_27 owner[this] == tid
+mover Atomic_18
+assert Atomic_34 owner[node] == tid
+mover Atomic_18
+inline all
+mover Atomic_18
+assert Atomic_92 p.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+aux intro owner [Node]int
+aux remove owner
+mover Atomic_18
+assert Atomic_10 owner[this] == tid
+mover Atomic_18
+assert Atomic_18 owner[node] == tid
+mover Atomic_18
+assert Atomic_12 owner[this] == tid
+mover Atomic_18
+assert Atomic_27 owner[this] == tid
+mover Atomic_18
+assert Atomic_34 owner[node] == tid
+mover Atomic_18
+assert Atomic_41 owner[node] == tid
+mover Atomic_18
+assert Atomic_56 owner[t] == tid
+mover Atomic_18
+assert Atomic_64 owner[node] == tid
+mover Atomic_18
+mover Atomic_18
+assert Atomic_66 owner[pred] == tid
+mover Atomic_18
+assert Atomic_67 owner[node] == tid
+inline all
+mover Atomic_18
+assert Atomic_92 p.alloc == Alloc
+mover Atomic_18
+reduce proc AQS_enq
+aux intro owner [Node]int
+aux remove owner
+mover Atomic_18
+assert Atomic_10 owner[this] == tid
+mover Atomic_18
+assert Atomic_18 owner[node] == tid
+mover Atomic_18
+assert Atomic_12 owner[this] == tid
+mover Atomic_18
+assert Atomic_27 owner[this] == tid
+mover Atomic_18
+assert Atomic_34 owner[node] == tid
+mover Atomic_18
+assert Atomic_41 owner[node] == tid
+mover Atomic_18
+assert Atomic_56 owner[t] == tid
+mover Atomic_18
+assert Atomic_64 owner[node] == tid
+mover Atomic_18
+mover Atomic_18
+assert Atomic_66 owner[pred] == tid
+mover Atomic_18
+assert Atomic_67 owner[node] == tid
+mover Atomic_18
+assert Atomic_106 owner[pred_dup] == tid
+mover Atomic_18
+assert Atomic_107 owner[node] == tid
+mover Atomic_18
+assert Atomic_109 owner[pred_dup] == tid
+assert Atomic_110 owner[node] == tid
+mover Atomic_18
+reduce proc AQS_enq

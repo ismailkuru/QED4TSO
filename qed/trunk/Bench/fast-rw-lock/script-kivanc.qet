@@ -1,0 +1,18 @@
+inline all
+mutexptr owner (forall lelem: Lelem :: lelem.EL == True)
+assert Atomic_22@readerUnlock owner[p] == tid
+assert Call_23@readerUnlock owner[p] == tid
+assert Atomic_24@readerUnlock owner[p] == tid
+assert Atomic_24@readerUnlock owner[I] == tid
+assert Call_25@readerUnlock owner[I] == tid
+assert Call_25@readerUnlock owner[p] == tid
+assert Atomic_26@readerUnlock owner[p] == tid
+assert Atomic_26@readerUnlock owner[I] == tid
+assert stmt Atomic_27@readerUnlock owner[I] == tid
+assert stmt Atomic_27@readerUnlock owner[p] == tid
+assert Call_29@readerUnlock owner[p] == tid
+assert Call_33@readerUnlock owner[I] == tid
+assert Atomic_34@readerUnlock owner[I] == tid
+assert stmt Atomic_35@readerUnlock owner[I] == tid
+abstract read Lelem_prev Atomic_20@readerUnlock
+reduce all

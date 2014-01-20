@@ -1,0 +1,4 @@
+inline all
+reduce all
+simulate Call_3@inc obj.value := obj.value + 1; havoc temp;
+simulate Call_8@dec obj.value := obj.value - 1; havoc temp;

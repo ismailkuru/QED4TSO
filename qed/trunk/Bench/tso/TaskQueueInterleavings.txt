@@ -1,0 +1,59 @@
+/* Assume that we have global indices H for head and T for tail items:int-->task map
+ Psuedo Code is given below
+*/
+ 
+ 
+ 
+ //Executed by on one thread                // Multiple threads can access                                // Executed by one thread    
+procedure put(task:Task){                   procedure steal(){                                       procedure take(){
+																										OWNERSHIP_TAKEN
+	OWNERSHIP_TAKEN                         SL0:     while(true){                                        TL0: while(true){
+		
+PL0:localTail := T                          SL1:     localHead := H                                   TL1:  localTail := T-1
+PL1:items[localTail] := task                SL2:     localTail := T                                   TL2:  T := localTail
+	                                                                                                     // TSO FENCE NEEDED
+PL2://TSO:FENCE NEEDED                      SL3:    if(localHead >=  localTail)                       TL3:  localHead := H
+	                                        SL4             return EMPTY                              TL4:  if(localTail < localHead){
+PL3:T := localTail + 1                      SL5:     localTask  := items[localHead]                   TL5:     T := localHead
+	                                                                                                  TL6:     return EMPTY
+PL5://FENCE NEEDED ?                                //If original head is updated the n                      }       
+											SL7:	 if(!CAS(&H, localHead, localHead+1))             TL7: localTask := items[localTail]
+    OWNERSHIP_RELEASED                      SL8:            continue;                                 TL8:  if(localTail > localHead)
+}                                           SL9:     return localTask;                                         return localTask;
+                                                }                                                         // equality
+											}                                                         TL9: T := localHead +1 
+																									  TL10: if(!CAS(&H, localHead, localHead+1))
+																									  TL11:		continue;
+																									  TL12:  return localTask;
+																									   }
+																									   
+																									    OWNERSHIP_RELEASED
+																									  }
+									
+Scenarios
+
+1. TSO Violating:
+
+1.a
+                                                   Initialization 
+												H=0  , T=1 , items[0]=1
+
+
+Thread 1 is executing take function. Thread 2 is executing steal function. They both want to pop the same task with id 1.
+
+Thread 1 executes  TL1, TL2 (buffered) and TL3
+
+Thread 2 executes SL1 and SL2. When SL2 is executed it doesnt see the updated T by TL2 so two pops for the same task with id 1 occur.
+
+1.b
+
+													Initialization
+												H=0, T=0 items[0]=0
+												
+												
+Thread 1 is executing the PL0 PL1 (put task with ID 1) PL3(Buffered T update)
+
+Thread 2 is executing the SL0 SL1 SL2. SL2 doesnt see the updated T from PL3 so it sees items EMPTY instead it is full and T is 1.
+
+										
+																									  

@@ -1,0 +1,37 @@
+inline all
+mover Atomic_18
+hoist Atomic_18 after
+mover Atomic_18
+simulate Atomic_18 havoc t; assume t == NULL_NODE;
+mover Atomic_18
+merge proc AQS_enq
+mover Atomic_18
+reduce proc AQS_enq
+mover Atomic_18
+assert Atomic_7 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_8 this.alloc == Alloc
+assert Atomic_9 this.alloc == Alloc
+assert Atomic_10 this.alloc == Alloc
+assert Atomic_11 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_12 this.alloc == Alloc
+mover Atomic_18
+assert Atomic_21 h.alloc == Alloc
+mover Atomic_18
+assert Atomic_22 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_27 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_154 t.alloc == Alloc
+mover Atomic_18
+assert Atomic_41 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_43 pred.alloc == Alloc
+mover Atomic_18
+assert Call_48 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_49 node.alloc == Alloc
+mover Atomic_18
+assert Atomic_50 s != NULL_NODE ==> s.alloc == Alloc
+mover Atomic_18

@@ -1,0 +1,26 @@
+
+var x : int;
+var y : int;
+
+procedure {:check 1} acquire(i : int)
+	modifies x, y;
+{
+	do {
+		do {
+			x := i;
+		} while(y != 0);
+		y := i;
+		
+		if(x == i) {
+			break;
+		} else if(y == i) {
+			break;
+		}
+	} while(true);
+}
+
+procedure {:check 1} release(i : int)
+	modifies Y;
+{
+	y := 0;
+}

@@ -1,0 +1,24 @@
+reduce all
+
+# introduce all invariants
+include invariants3.qet
+
+check all
+
+# use \\ for commands spanning multiple lines
+simulate Atomic_1 \\
+	assume e == E; \\
+        havoc qseq, qcount, pred, curr; \\
+	assume 1 <= qcount; \\
+	assume (forall i: int :: { qseq[i] } 1 <= i && i <= qcount ==> 0 <= qseq[i] && qseq[i] <= Hcount); \\
+	assume (forall i,j: int :: { qseq[i],qseq[j] } 1 <= i && i <= j && j <= qcount ==> qseq[i] <= qseq[j]); \\
+	assume ReachBetweenSet(Hnext[qseq[qcount]], curr, Tail)[Tail]; \\
+        assume (forall m: Node :: {ReachBetweenSet(Hnext[qseq[qcount]], curr, Tail)[m]} ReachBetweenSet(Hnext[qseq[qcount]], curr, Tail)[m] ==> m.key != E || Hmarked[qseq[qcount]][m]==True);
+
+#mover Atomic_1
+
+#reduce loop2 Atomic_1
+
+#reduce proc contains
+
+#check all

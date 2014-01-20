@@ -1,0 +1,58 @@
+inline all
+reduce all
+assert proc writerUnlock IsAlloc(I.alloc)
+assert Atomic_16@writerUnlock IsAlloc(I.next.alloc)
+assert Atomic_17@writerUnlock IsAlloc(I.next.alloc)
+assert Atomic_10@writerLock IsAlloc(pred.alloc)
+assert Atomic_10@writerLock pred.next == null
+assert Atomic_10@writerLock I != null
+abstract read Lelem_next Atomic_12@writerUnlock
+reduce all
+hoist Atomic_5 after
+reduce all
+simulate Atomic_12@writerUnlock havoc abst_Lelem_next_0, tmp, guard_0;         assert IsAlloc(I.alloc);         if (*)         {             if (L == I)             {                 L := null; return;             }         }
+simulate Atomic_15@writerUnlock assert IsAlloc(I.alloc); assume I.next != null;          assert IsAlloc(I.next.alloc);         I.next.prev := null;          I.next.spin := 0;
+aux intro owner [Lelem]int
+annotate Atomic_5@writerLock owner owner[I] := tid;
+annotate Atomic_5_else@writerLock owner owner[I] := tid;
+assert Atomic_11@writerLock owner[I] == tid
+assert Atomic_12@writerUnlock owner[I] == tid
+assert Atomic_15@writerUnlock owner[I] == tid
+aux remove owner
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> owner[L] == 0)
+invariant IsAlloc(L.alloc) || IsNull(L.alloc)
+invariant null.next == null && null.prev == null
+invariant L.next == null
+aux intro wlock Lelem
+simulate Atomic_11 assert owner[I] == tid;             assume I.spin != 1; assert wlock == I;
+simulate Atomic_5_else I := New Lelem;        I.state := WRITER;              I.spin := 1;              I.next := null;              pred := L;             L := I;              assume pred == null;              owner[I] := tid; wlock := I;
+simulate Atomic_12 assert owner[I] == tid;         havoc abst_Lelem_next_0, tmp, guard_0;         assert IsAlloc(I.alloc);         if (*)         {             if (L == I)             {                 L := null; wlock := null;                 return;             }         }
+simulate Atomic_15 assert owner[I] == tid;         assert IsAlloc(I.alloc);         assume I.next != null;         assert IsAlloc(I.next.alloc);         I.next.prev := null;         I.next.spin := 0; wlock := I.next;
+aux remove wlock
+assert Atomic_12 L != null
+assert Atomic_15 L != null
+assert Atomic_11 L != null
+invariant L == null <==> wlock == null
+aux intro acq [Lelem]boolean
+annotate Atomic_5_else acq acq[I] := False;
+annotate Atomic_11 acq acq[I] := False;
+aux remove acq
+assert Atomic_11 acq[I] == True
+assert Atomic_12 acq[I] == False
+assert Atomic_15 acq[I] == False
+invariant (forall l: Lelem :: l.spin == 0 || l.spin == 1)
+invariant (forall l: Lelem :: !IsAlloc(l.alloc) ==> acq[l] == True)
+assert Atomic_12 wlock == I
+assert Atomic_15 wlock == I
+assert Atomic_11 IsAlloc(I.alloc)
+invariant (forall l: Lelem :: !IsAlloc(l.alloc) ==> l.next == null)
+invariant (forall k: Lelem, l: Lelem :: IsAlloc(k.alloc) && IsDealloc(l.alloc) ==> !ReachBetween(Lelem_next, k, l, l))
+invariant (forall l: Lelem :: IsAlloc(l.alloc) ==> ReachBetween(Lelem_next, l, null, null))
+invariant ReachBetween(Lelem_next, wlock, L, null)
+invariant (forall k: Lelem, l: Lelem, m: Lelem :: IsAlloc(l.alloc) && k != m && l != m && k != l && ReachBetween(Lelem_next, k, l, null) && ReachBetween(Lelem_next, m, l, null) ==> ReachBetween(Lelem_next, k, m, m) || ReachBetween(Lelem_next, m, k, k))
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && ReachBetween(Lelem_next, wlock, l, L) && l != wlock ==> acq[l] == True)
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && ReachBetween(Lelem_next, l, wlock, wlock) && l != wlock ==> acq[l] == False) && (forall l: Lelem :: L != null && IsAlloc(l.alloc) && !ReachBetween(Lelem_next, l, L, null) ==> acq[l] == False)
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && ReachBetween(Lelem_next, wlock, l, null) && l != null && l != wlock ==> l.spin == 1)
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && acq[l] == True && l.spin == 0 ==> l == wlock)
+mover all
+check all block

@@ -1,0 +1,15 @@
+apply_f()
+ 1 var x, fx : int;
+ 2 acquire(m);
+ 3 x := z;
+ 4 release(m);
+ 5 while(true) {
+ 6   fx := f(x);
+ 7   acquire(m);
+ 8   if(x == z) {
+ 9     z := fx; release(m);
+10     break;
+11   } else {
+12     x := z; release(m);
+13   }
+14 }

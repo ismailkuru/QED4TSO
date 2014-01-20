@@ -1,0 +1,62 @@
+inline all
+reduce all
+aux intro constructed [QueueItem]boolean
+simulate Atomic_1 x_i := New QueueItem; constructed[x_i] := False; assume x_i != NULL_QUEUE_ITEM;
+simulate Atomic_23 this.value := val; constructed[this] := True;
+aux remove constructed
+assert Atomic_22 constructed[this] == False
+assert Atomic_7 constructed[t] == True
+assert Atomic_14 constructed[h] == True
+reduce all
+inline all
+reduce all
+check all block
+assert Call_3 x_i.alloc == Alloc
+assert Atomic_7 t.alloc == Alloc
+assert Atomic_14 h.alloc == Alloc
+mover Atomic_1
+merge all
+check all block
+assert Atomic_15 newHead.alloc == Alloc
+assert Atomic_17 newHead.alloc == Alloc
+mover Atomic_1
+merge all
+aux intro owner [Object]int
+simulate Atomic_1 x_i := New QueueItem;         constructed[x_i] := False;         assume x_i != NULL_QUEUE_ITEM;          x_i.next := NULL_QUEUE_ITEM;          x_i.value := value;         constructed[x_i] := True;          tl := this.tailLock;          assume tl.lock == False;         tl.lock := True;          t := this.tail; owner[tl] := tid;
+simulate Atomic_8 assert owner[tl] == 0 || owner[tl] == tid; this.tail := x_i;         assert tl.lock == True;         tl.lock := False; owner[tl] := 0;
+simulate Atomic_10 hl := this.headLock;          assume hl.lock == False;         hl.lock := True;          node := this.head; owner[hl] := tid;
+simulate Call_18 assert owner[hl] == 0 || owner[hl] == tid;         assert hl.lock == True;         hl.lock := False;          result := x_d; owner[hl] := 0;
+aux remove owner
+invariant (forall obj: Object :: obj.lock == True <==> owner[obj] != 0)
+assert Atomic_8 this.tail.alloc == Alloc
+assert Atomic_8 tl == this.tailLock
+reduce all
+invariant (forall lock: TwoLockQueue :: lock.tailLock != lock.headLock)
+invariant (forall lock1: TwoLockQueue, lock2: TwoLockQueue :: lock1 != lock2 ==> lock1.headLock != lock2.headLock)
+invariant (forall lock1: TwoLockQueue, lock2: TwoLockQueue :: lock1 != lock2 ==> lock1.tailLock != lock2.tailLock)
+invariant (forall lock1: TwoLockQueue, lock2: TwoLockQueue :: lock1 != lock2 ==> lock1.headLock != lock2.tailLock)
+assert Atomic_16 owner[this.headLock] == tid
+split if Atomic_15
+reduce all
+invariant NULL_QUEUE_ITEM.alloc == Null && NULL_QUEUE_ITEM.next == NULL_QUEUE_ITEM
+mover Atomic_36
+assert Atomic_13 owner[this.headLock] == tid
+mover Atomic_36
+merge all
+simulate Atomic_35 assert owner[this.headLock] == tid; if (newHead != NULL_QUEUE_ITEM)         {             assert newHead.alloc == Alloc;             x_d := newHead.value;             this.head := newHead;         }
+assert Atomic_37 hl == this.headLock
+simulate Atomic_37 assert hl == this.headLock;         if (newHead != NULL_QUEUE_ITEM)         {  assert newHead == this.head;             assert newHead.alloc == Alloc;             newHead.value := NULL_OBJECT;         }          assert owner[hl] == 0 || owner[hl] == tid;         assert hl.lock == True;         hl.lock := False;         result := x_d;         owner[hl] := 0;
+invariant (forall lock: TwoLockQueue :: constructed[lock.tail] == True)
+invariant (forall item: QueueItem :: constructed[item] == True ==> item != NULL_QUEUE_ITEM)
+invariant (forall item: QueueItem :: constructed[item] == True ==> item.alloc == Alloc)
+check all block
+simulate Atomic_1 x_i := New QueueItem;         assume x_i != NULL_QUEUE_ITEM;         x_i.next := NULL_QUEUE_ITEM;         x_i.value := value;         constructed[x_i] := True;         tl := this.tailLock;         t := this.tail;         t.next := x_i;         this.tail := x_i;         tl.lock := False;         owner[tl] := 0;
+invariant (forall lock1: TwoLockQueue, lock2: TwoLockQueue :: lock1 != lock2 ==> lock1.tail != lock2.tail)
+invariant (forall lock: TwoLockQueue :: lock.tail.next == NULL_QUEUE_ITEM)
+assert Atomic_35 ReachBetween(QueueItem_next, this.head, newHead, NULL_QUEUE_ITEM)
+simulate Atomic_1 x_i := New QueueItem;         assume x_i != NULL_QUEUE_ITEM;         x_i.next := NULL_QUEUE_ITEM;         x_i.value := value;         constructed[x_i] := True; this.tail.next := x_i; this.tail := this.tail.next; havoc t;         havoc tl;         this.tailLock.lock := False;         owner[this.tailLock] := 0;
+simulate Atomic_10 hl := this.headLock;         assume hl.lock == False;         hl.lock := True;         node := this.head;         owner[hl] := tid;          havoc h;          assert this.head.alloc == Alloc;         assert constructed[this.head] == True;         newHead := this.head.next;
+invariant (forall lock1: TwoLockQueue, lock2: TwoLockQueue, item: QueueItem :: lock1 != lock2 && ReachBetween(QueueItem_next, lock1.head, item, item) ==> !ReachBetween(QueueItem_next, lock2.head, item, item)) && (forall lock: TwoLockQueue :: ReachBetween(QueueItem_next, lock.head, lock.tail, NULL_QUEUE_ITEM)) && (forall lock: TwoLockQueue, item: QueueItem :: ReachBetween(QueueItem_next, lock.head, item, lock.tail) ==> constructed[item] == True)
+reduce all
+simulate Atomic_10 havoc hl;         havoc node;         havoc h;         havoc newHead;           if (this.head.next != NULL_QUEUE_ITEM)         {             x_d := this.head.next.value;             this.head := this.head.next;             this.head.value := NULL_OBJECT;         }  result := x_d;         this.headLock.lock := False;         owner[this.headLock] := 0;
+mover all

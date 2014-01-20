@@ -1,0 +1,26 @@
+inline all
+
+localinv find a == A;
+
+# always out
+splitinv (forall i,n,size: int, r: EValue :: ADR(r) == A ==> H[i].table[key(A, size, n)] != r)
+
+reduce all
+
+# introduce all invariants
+# include invariants.qet
+
+simulate Atomic_18 \\
+	    assert h == H[index];\\
+	    assert l == h.size;\\
+            k := key(a, l, n);\\
+            havoc r;
+
+simulate Atomic_33 \\
+	    assert h == H[index];\\
+            assert l == h.size;\\
+            k := key(a, l, n);\\
+            havoc r;
+
+reduce all
+mover all

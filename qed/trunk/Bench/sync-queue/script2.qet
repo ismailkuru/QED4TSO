@@ -1,0 +1,17 @@
+inline all
+reduce all
+abstract read NaiveSQ_item Call_3@take
+abstract read NaiveSQ_item Call_25@put
+abstract read NaiveSQ_putting Call_15@put
+reduce all
+simulate Call_3@take havoc abst_NaiveSQ_item_0; itm := abst_NaiveSQ_item_0[q];
+simulate Call_25@put havoc abst_NaiveSQ_item_1; itm := abst_NaiveSQ_item_1[q];
+simulate Call_15@put havoc abst_NaiveSQ_putting_2; ptng := abst_NaiveSQ_putting_2[q];
+reduce all
+reduce loop Call_3@take havoc abst_NaiveSQ_item_0; havoc itm;
+reduce loop Call_25@put havoc abst_NaiveSQ_item_1; havoc itm;
+reduce loop Call_15@put havoc abst_NaiveSQ_putting_2; havoc ptng;
+reduce all
+simulate Atomic_42@take havoc abst_NaiveSQ_item_0;         itm := q.item;          assume itm != null;          e := itm;          q.item := null;          return;
+simulate Atomic_38@put if (e == null)         {             return;         }          havoc abst_NaiveSQ_putting_2,abst_NaiveSQ_item_1;         ptng := q.putting;          assume ptng == False;          q.putting := True;          q.item := e; havoc itm;
+simulate Call_29@put itm := q.item;          assume itm == null;          q.putting := False;          return;

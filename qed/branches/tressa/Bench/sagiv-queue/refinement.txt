@@ -1,0 +1,97 @@
+
+record Queue
+{
+  head: QueueItem;
+  tail: QueueItem;
+}
+
+record QueueItem
+{
+ next: QueeuItem;
+ value: int;
+}
+
+var Q: Queue; 
+
+
+SPEC:
+enq(x: int)
+{
+ atomic {
+  var n: QueueItem;
+ 
+  n := New QueueItem;
+  n.value := x;
+  n.next := null;
+ 
+  Q.tail.next := n;
+  Q.tail := n;
+  return;
+ }
+}
+
+deq() returns(x: int)
+{
+ atomic {
+  x := Q.head.value;
+  Q.head := Q.head.next;
+  return x;
+ }
+}
+
+***************************************************
+
+IMPL:
+enq(x: int)
+{
+  var n,k: QueueItem;
+
+  atomic {
+   n := New QueueItem;
+   n.value := x;
+   n.next := null;
+  }
+
+  while(true) {
+    if(*) {
+      atomic {
+        havoc k;
+	assume ReachBetween[next](Q.tail, k, NULL) && k != NULL;
+	Q.tail := k;
+      }
+    } else {
+      atomic {
+        assume Q.tail.next == NULL;
+	Q.tail.next := n;
+	break;
+     }
+   } // end if
+  } // end while
+
+  atomic {
+    havoc k;
+    assume ReachBetween[next](Q.tail, k, NULL) && k != NULL;
+    Q.tail := k;		
+  }
+}
+
+deq() returns(x: int)
+{
+ var k: QueueItem;
+
+ while(true) {
+    if(*) {
+      atomic {
+        havoc k;
+	assume ReachBetween[next](Q.tail, k, NULL) && k != NULL;
+	Q.tail := k;
+      }
+    } else {
+      atomic {
+        x := Q.head.value;
+	Q.head := Q.head.next;
+        return x;
+     }
+   } // end if
+  } // end while
+}

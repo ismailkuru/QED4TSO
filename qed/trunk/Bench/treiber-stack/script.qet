@@ -1,0 +1,43 @@
+inline all
+nullcheck
+reduce all
+assert Atomic_5 t == null || IsAlloc(t.alloc)
+invariant (forall n1: Node, n2: Node :: IsDealloc(n1.alloc) ==> n2.next != n1) && (forall n: Node :: !IsAlloc(n.alloc) ==> n.next == null)
+aux begin owner [Node]int
+annotate Atomic_2 owner owner[x] := tid;
+assert Atomic_5 owner[x] == tid
+assert Call_6 owner[x] == tid
+simulate Call_6 assert owner[x] == tid; havoc g;   if (TOP == t)   {       TOP := x; owner[x] := 0; break;   }
+assert Atomic_11 owner[t] == 0
+assert Call_12 owner[x] == 0
+aux end owner
+invariant (forall n: Node :: !IsAlloc(n.alloc) ==> owner[n] == 0)
+assert Call_12 x == null || IsAlloc(x.alloc)
+invariant owner[TOP] == 0 && (TOP == null || IsAlloc(TOP.alloc))
+simulate Atomic_4 havoc t; assume t == null || IsAlloc(t.alloc);
+reduce all
+check all block
+simulate Atomic_8 t := TOP;             if (t == null)             {                 v := EMPTY;                 return;             } havoc t; assume IsAlloc(t.alloc) && owner[t] == 0;             x := t.next;
+reduce all
+check all block
+peelout Atomic_4
+simulate Atomic_4 havoc t;                 assume t == null || IsAlloc(t.alloc);                  assert owner[x] == tid;                 assert x.alloc == Alloc;                 x.next := t;                  havoc g;
+simulate Atomic_4_dup havoc t;                 assume t == null || IsAlloc(t.alloc);                  assert owner[x] == tid;                 assert x.alloc == Alloc;                 x.next := t;                  havoc g;                 assume (TOP == t);                     TOP := x;                     owner[x] := 0;
+mover Atomic_4
+reduce loop Atomic_4 if(*) { havoc t;             assume t == null || IsAlloc(t.alloc);             assert owner[x] == tid;             assert x.alloc == Alloc;             x.next := t;             havoc g; }
+reduce all
+simulate Atomic_2 x := New Node;         x.data := v;          owner[x] := tid;             havoc t;             x.next := t;             havoc g;             assume TOP == t;             TOP := x;             owner[x] := 0;
+simulate Atomic_8 if (*)             { assume TOP == null; havoc t;                 v := EMPTY;                 return;             }              havoc t;             assume IsAlloc(t.alloc) && owner[t] == 0;             x := t.next;
+mover Atomic_8
+merge all
+peelout Atomic_8
+invariant (forall n: Node :: owner[n] == 0 && IsAlloc(n.next.alloc) ==> owner[n.next] == 0)
+invariant (forall n: Node :: owner[n] == 0 ==> IsAlloc(n.next.alloc) || n.next == null)
+check all block
+simulate Atomic_8 havoc x,g,t;
+reduce loop Atomic_8 havoc x,g,t;
+simulate Atomic_8_dup if (*)                 {                     assume TOP == null;                     havoc t;                     v := EMPTY;                     return;                 }                  havoc t;                 assume IsAlloc(t.alloc) && owner[t] == 0;                 x := t.next;                  assume TOP == t;   TOP := x;                 havoc g,ex;
+reduce all
+check all block
+simulate Atomic_43 havoc x, g, t;         if (TOP == null)         {             v := EMPTY;             return;         }          t := TOP;                 x := t.next;         TOP := x;         v := t.data;
+simulate Atomic_2: x := New Node;         x.data := v;         havoc t, g;         x.next := TOP;         TOP := x;         owner[x] := 0;

@@ -1,0 +1,34 @@
+config Reduction Iterative true
+inline all
+abstract read elt Atomic_14@FindSlot
+post FindSlot lock == old(lock)
+mutexptr a (forall k: int :: lock[k] == 1)
+mover all
+merge all *
+assert proc FindSlot x != null
+assert proc Insert x != null
+assert proc InsertPair x != null && y != null
+assert proc LookUp x != null
+assert Atomic_62@InsertPair valid[i] == 0
+invariant (forall x: int :: elt[x] == null ==> valid[x] == 0)
+reduce proc Insert
+aux intro owner [int]int
+simulate Atomic_60@Insert assert x != null;     if (*)     {         assume i == 0 - 1;          r := false;          return;     }     else     {         assume i != 0 - 1;     }  assert owner[i] == tid;     assume lock[i] == 0;     lock[i] := 1;     a[i] := tid;     a[i] := tid;      assert a[i] == tid;     assert elt[i] == x;      assert a[i] == tid;     assert valid[i] == 0;      assert a[i] == tid;     valid[i] := 1;      assert a[i] == tid;     assert lock[i] == 1;     lock[i] := 0;     a[i] := 0;      return;
+simulate Atomic_61@InsertPair assert x != null && y != null;     if (*)     {         assume i == 0 - 1;          r := false;          return;     }     else     {         assume i != 0 - 1;     assert owner[i] == tid;     }
+simulate Atomic_62@InsertPair assert owner[i] == tid; assert valid[i] == 0;     assert x != null && y != null;     if (*)     {         assume j == 0 - 1;          assume lock[i] == 0;         lock[i] := 1;         a[i] := tid;         a[i] := tid;          assert a[i] == tid;         elt[i] := null;          assert a[i] == tid;         assert lock[i] == 1;         lock[i] := 0;         a[i] := 0;          r := false; owner[i] :=0;         return;     }     else     {         assume j != 0 - 1; assert owner[j]== tid;     }
+simulate Call_26@InsertPair assert owner[i] == tid && owner[j] == tid;     assert x != null && y != null;     assume lock[i] == 0;     lock[i] := 1;     a[i] := tid;     a[i] := tid;      assert a[i] == tid;     assume lock[j] == 0;     lock[j] := 1;     a[j] := tid;      assert a[j] == tid;     assert a[i] == tid;     assert elt[i] == x;      assert a[j] == tid;     assert a[i] == tid;     assert elt[j] == y;      assert a[j] == tid;     assert a[i] == tid;     assert valid[i] == 0;      assert a[j] == tid;     assert a[i] == tid;     assert valid[j] == 0;      assert a[j] == tid;     assert a[i] == tid;     valid[i] := 1;      assert a[j] == tid;     assert a[i] == tid;     valid[j] := 1;      assert a[j] == tid;     assert a[i] == tid;     assert lock[i] == 1;     lock[i] := 0;     a[i] := 0;      assert a[j] == tid;     assert lock[j] == 1;     lock[j] := 0;     a[j] := 0;      return;
+simulate Atomic_6@FindSlot assert x != null;   assume j < max;    assume lock[j] == 0;   lock[j] := 1;   a[j] := tid;   a[j] := tid;    if (*)   {       assert a[j] == tid;       assume elt[j] == null;        assert a[j] == tid;       elt[j] := x;        assert a[j] == tid;       assert lock[j] == 1;       lock[j] := 0;       a[j] := 0;        r := j; owner[j] := tid;       return;   }   else   {       assert a[j] == tid;       assume abst_elt[j] != null;   }    assert a[j] == tid;   assert lock[j] == 1;   lock[j] := 0;   a[j] := 0;    j := j + 1;
+aux remove owner
+invariant (forall x: int :: { elt[x] } { owner[x] } elt[x] != null <==> owner[x] != 0)
+simulate Atomic_3@FindSlot assert x != null; havoc j; assume 0 <= j && j <= max; if(*) {assume elt[j] == null; elt[j] := x; owner[j] := tid; r := j; return;}
+reduce loop2 Atomic_3@FindSlot
+reduce proc FindSlot
+inline FindSlot
+reduce all
+simulate Atomic_45@LookUp assert x != null; havoc i; assume 0 <= i && i <= max; if(*) {assume elt[i] == x && valid[i] == 1; r := true; return;}
+reduce loop2 Atomic_45@LookUp
+reduce proc LookUp
+check FindSlot
+check Insert
+check InsertPair
+check LookUp

@@ -1,0 +1,63 @@
+Processing the file: transmutex-init.bpl
+Creating procedure state: TMBegin
+Creating procedure state: TMEnd
+Creating procedure state: TMRead
+Creating procedure state: TMWrite
+Done with preprocessing the program.
+Initializing the theorem prover
+Initialized the theorem prover
+Running the command: reduce all
+Checking mover type of Atomic_1@TMBegin
+Checking mover type of Atomic_2@TMBegin
+Checking mover type of Atomic_3@TMBegin
+Checking mover type of Atomic_4@TMBegin
+Checking mover type of Atomic_7@TMBegin
+Checking mover type of Atomic_8@TMBegin
+Checking mover type of Atomic_9@TMBegin
+Checking mover type of Atomic_10@TMBegin
+Checking mover type of Atomic_11@TMBegin
+Checking mover type of Atomic_12@TMBegin
+Checking mover type of Atomic_5@TMBegin
+Checking mover type of Atomic_6@TMBegin
+Merging atomic statements: Atomic_10 and Atomic_11
+Merging atomic statements: Atomic_7 and Atomic_8
+Merging atomic statements: Atomic_9 and Atomic_38
+Merging atomic statements: Atomic_3 and Atomic_4
+Merging atomic statements: Atomic_1 and Atomic_2
+Checking mover type of Atomic_13@TMEnd
+Checking mover type of Atomic_14@TMEnd
+Checking mover type of Atomic_15@TMEnd
+Checking mover type of Atomic_17@TMEnd
+Checking mover type of Atomic_18@TMEnd
+Checking mover type of Atomic_19@TMEnd
+Checking mover type of Atomic_20@TMEnd
+Checking mover type of Atomic_16@TMEnd
+Merging atomic statements: Atomic_17 and Atomic_18
+Merging atomic statements: Atomic_13 and Atomic_14
+Checking mover type of Atomic_21@TMRead
+Checking mover type of Atomic_22@TMRead
+Checking mover type of Atomic_23@TMRead
+Checking mover type of Atomic_24@TMRead
+Checking mover type of Atomic_25@TMRead
+Checking mover type of Atomic_26@TMRead
+Merging atomic statements: Atomic_24 and Atomic_25
+Merging atomic statements: Atomic_21 and Atomic_22
+Merging atomic statements: Atomic_23 and Atomic_39
+Checking mover type of Atomic_27@TMWrite
+Checking mover type of Atomic_28@TMWrite
+Checking mover type of Atomic_29@TMWrite
+Checking mover type of Atomic_32@TMWrite
+Checking mover type of Atomic_33@TMWrite
+Checking mover type of Atomic_34@TMWrite
+Checking mover type of Atomic_35@TMWrite
+Checking mover type of Atomic_36@TMWrite
+Checking mover type of Atomic_37@TMWrite
+Checking mover type of Atomic_30@TMWrite
+Checking mover type of Atomic_31@TMWrite
+Merging atomic statements: Atomic_32 and Atomic_33
+Merging atomic statements: Atomic_34 and Atomic_35
+Merging atomic statements: Atomic_32 and Atomic_34
+Merging atomic statements: Atomic_36 and Atomic_37
+Merging atomic statements: Atomic_28 and Atomic_29
+Merging atomic statements: Atomic_30 and Atomic_31
+Finished with the command: reduce all

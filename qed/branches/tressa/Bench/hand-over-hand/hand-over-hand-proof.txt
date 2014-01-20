@@ -1,0 +1,5571 @@
+Proof steps of program: hand-over-hand2.bpl
+#########################################################################
+#########################################################################
+Original program
+#########################################################################
+procedure {:isatomic true} {:ispublic false} Acq(node: Node);
+  modifies Node_lock;
+
+
+
+implementation Acq(node: Node)
+{
+  Atomic_1:
+    atomic { // None-mover
+        assume node.lock == False;
+        node.lock := True;
+    }
+}
+
+
+
+procedure {:isatomic true} {:ispublic false} Rel(node: Node);
+  modifies Node_lock;
+
+
+
+implementation Rel(node: Node)
+{
+  Atomic_2:
+    atomic { // None-mover
+        assert node.lock == True;
+        node.lock := False;
+    }
+}
+
+
+
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+      call Acq(p);
+
+  Atomic_5:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+          call Acq(n);
+
+      Call_8:
+          call Rel(p);
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+      call Rel(p);
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+#########################################################################
+#########################################################################
+After the command: inline all
+Command: inline all
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+#########################################################################
+#########################################################################
+After the command: mutexptr aux (forall x: Node :: x.lock == True)
+Command: mutexptr aux (forall x: Node :: x.lock == True)
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_5@Find p != null && aux[p] == tid && p.alloc == True
+Command: assert Atomic_5@Find p != null && aux[p] == tid && p.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_6@Find n == null || n.alloc == True
+Command: assert Atomic_6@Find n == null || n.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_10@Find p != null && aux[p] == tid && p.alloc == True
+Command: assert Atomic_10@Find p != null && aux[p] == tid && p.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_11@Find n == null || n.alloc == True
+Command: assert Atomic_11@Find n == null || n.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_14@Insert p != null && aux[p] == tid && p.alloc == True
+Command: assert Atomic_14@Insert p != null && aux[p] == tid && p.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_15@Insert n == null || n.alloc == True
+Command: assert Atomic_15@Insert n == null || n.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: assert Atomic_19@Insert p != null && aux[p] == tid && p.alloc == True
+Command: assert Atomic_19@Insert p != null && aux[p] == tid && p.alloc == True
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // None-mover
+        p := list.head;
+    }
+
+  Call_4:
+    atomic { // None-mover
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+    }
+
+  Atomic_5:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_6:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+        }
+
+      Call_8:
+        atomic { // None-mover
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+        }
+
+      Atomic_9:
+        atomic { // None-mover
+            p := n;
+        }
+
+      Atomic_10:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+        }
+
+      Atomic_11:
+        atomic { // None-mover
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // None-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+    }
+
+  Atomic_15:
+    atomic { // None-mover
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+    }
+
+    if (guard_0)
+    {
+      Atomic_16:
+        atomic { // None-mover
+            t := New Node;
+        }
+
+      Atomic_17:
+        atomic { // None-mover
+            t.val := x;
+        }
+
+      Atomic_18:
+        atomic { // None-mover
+            t.next := n;
+        }
+
+      Atomic_19:
+        atomic { // None-mover
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+        }
+
+      Atomic_20:
+        atomic { // None-mover
+            wasPresent := false;
+        }
+    }
+    else
+    {
+      Atomic_21:
+        atomic { // None-mover
+            wasPresent := true;
+        }
+    }
+
+  Call_22:
+    atomic { // None-mover
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // Right-mover
+        p := list.head;
+
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+#########################################################################
+#########################################################################
+After the command: invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null))
+Command: invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null))
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // Right-mover
+        p := list.head;
+
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: prover off
+Command: prover off
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+
+  Atomic_3:
+    atomic { // Right-mover
+        p := list.head;
+
+        // call Acq(p);
+        assume p.lock == False;
+        p.lock := True;
+
+        aux[p] := tid;
+
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: simulate Atomic_3@Find var m:Node; havoc m; assume ReachBetween(Node_next, list.head, m, null) && m != null; p:= m; assume (forall k:Node :: (ReachBetween(Node_next, list.head.next, k, null) && (!ReachBetween(Node_next, p.next, k, null)) && (k != null)) ==> (k.val < x)); assume p.lock == False; p.lock := True; aux[p] := tid; n := p.next; assert n == null || n.alloc == True;  guard := n != null && n.val < x;
+Command: simulate Atomic_3@Find var m:Node; havoc m; assume ReachBetween(Node_next, list.head, m, null) && m != null; p:= m; assume (forall k:Node :: (ReachBetween(Node_next, list.head.next, k, null) && (!ReachBetween(Node_next, p.next, k, null)) && (k != null)) ==> (k.val < x)); assume p.lock == False; p.lock := True; aux[p] := tid; n := p.next; assert n == null || n.alloc == True;  guard := n != null && n.val < x;
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // None-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: prover on
+Command: prover on
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // None-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: mover proc Find
+Command: mover proc Find
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // Right-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: prover off
+Command: prover off
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // Right-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+    while (guard)
+    {
+      Call_7:
+        atomic { // None-mover
+            // call Acq(n);
+            assume n.lock == False;
+            n.lock := True;
+
+            aux[n] := tid;
+
+            assert aux[p] == tid || aux[p] == 0;
+            // call Rel(p);
+            assert p.lock == True;
+            p.lock := False;
+
+            aux[p] := 0;
+
+            p := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            n := p.next;
+
+            assert n == null || n.alloc == True;
+            guard := n != null && n.val < x;
+        }
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: reduce loop2 Atomic_3@Find
+Command: reduce loop2 Atomic_3@Find
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // Both-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: prover on
+Command: prover on
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // Both-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+    }
+
+  Atomic_12:
+    atomic { // Both-mover
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure {:ispublic false} Find(list: List, x: Data) returns (node: Node);
+  modifies Node_lock, aux, Node_lock;
+
+
+
+implementation Find(list: List, x: Data) returns (node: Node)
+{
+  var p: Node;
+  var n: Node;
+  var guard: bool;
+  var m: Node;
+
+  Atomic_3:
+    atomic { // Right-mover
+        havoc m;
+        assume ReachBetween(Node_next, list.head, m, null) && m != null;
+        p := m;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, p.next, k, null) && k != null ==> k.val < x);
+        assume p.lock == False;
+        p.lock := True;
+        aux[p] := tid;
+        n := p.next;
+        assert n == null || n.alloc == True;
+        guard := n != null && n.val < x;
+
+        node := p;
+    }
+}
+
+
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+
+  Call_13:
+      call p := Find(list, x);
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: inline all
+Command: inline all
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // Right-mover
+        // call p := Find(list, x);
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        assume fresh_1.lock == False;
+        fresh_1.lock := True;
+        aux[fresh_1] := tid;
+        fresh_2 := fresh_1.next;
+        assert fresh_2 == null || fresh_2.alloc == True;
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+
+        p := fresh_1;
+    }
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: mover proc Insert
+Command: mover proc Insert
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // Right-mover
+        // call p := Find(list, x);
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        assume fresh_1.lock == False;
+        fresh_1.lock := True;
+        aux[fresh_1] := tid;
+        fresh_2 := fresh_1.next;
+        assert fresh_2 == null || fresh_2.alloc == True;
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+
+        p := fresh_1;
+    }
+
+  Atomic_14:
+    atomic { // None-mover
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: merge proc Insert
+Command: merge proc Insert
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // None-mover
+        // call p := Find(list, x);
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        assume fresh_1.lock == False;
+        fresh_1.lock := True;
+        aux[fresh_1] := tid;
+        fresh_2 := fresh_1.next;
+        assert fresh_2 == null || fresh_2.alloc == True;
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+
+        p := fresh_1;
+
+        assert p != null && aux[p] == tid && p.alloc == True;
+        n := p.next;
+
+        assert n == null || n.alloc == True;
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            assert p != null && aux[p] == tid && p.alloc == True;
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        assert aux[p] == tid || aux[p] == 0;
+        // call Rel(p);
+        assert p.lock == True;
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: check Insert
+Command: check Insert
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // None-mover
+        // call p := Find(list, x);
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        assume fresh_1.lock == False;
+        fresh_1.lock := True;
+        aux[fresh_1] := tid;
+        fresh_2 := fresh_1.next;
+        // assert fresh_2 == null || fresh_2.alloc == True; [Discharged]
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+
+        p := fresh_1;
+
+        // assert p != null && aux[p] == tid && p.alloc == True; [Discharged]
+        n := p.next;
+
+        // assert n == null || n.alloc == True; [Discharged]
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            // assert p != null && aux[p] == tid && p.alloc == True; [Discharged]
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        // assert aux[p] == tid || aux[p] == 0; [Discharged]
+        // call Rel(p);
+        // assert p.lock == True; [Discharged]
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+#########################################################################
+#########################################################################
+After the command: invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head, e, null) && ReachBetween(Node_next, list.head, f, null) && e != null && f != null && ReachBetween(Node_next, e, f, null) ==> e.val < f.val)
+Command: invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head, e, null) && ReachBetween(Node_next, list.head, f, null) && e != null && f != null && ReachBetween(Node_next, e, f, null) ==> e.val < f.val)
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux, Node_lock;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // None-mover
+        // call p := Find(list, x);
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        assume fresh_1.lock == False;
+        fresh_1.lock := True;
+        aux[fresh_1] := tid;
+        fresh_2 := fresh_1.next;
+        // assert fresh_2 == null || fresh_2.alloc == True; [Discharged]
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+
+        p := fresh_1;
+
+        // assert p != null && aux[p] == tid && p.alloc == True; [Discharged]
+        n := p.next;
+
+        // assert n == null || n.alloc == True; [Discharged]
+        guard_0 := n == null || n.val > x;
+
+        if (guard_0)
+        {
+            t := New Node;
+
+            t.val := x;
+
+            t.next := n;
+
+            // assert p != null && aux[p] == tid && p.alloc == True; [Discharged]
+            p.next := t;
+
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        // assert aux[p] == tid || aux[p] == 0; [Discharged]
+        // call Rel(p);
+        // assert p.lock == True; [Discharged]
+        p.lock := False;
+
+        aux[p] := 0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head, e, null) && ReachBetween(Node_next, list.head, f, null) && e != null && f != null && ReachBetween(Node_next, e, f, null) ==> e.val < f.val);
+
+#########################################################################
+#########################################################################
+After the command: simulate Call_13@Insert havoc fresh_0;         assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;         fresh_1 := fresh_0;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);         fresh_2 := fresh_1.next;         fresh_3 := fresh_2 != null && fresh_2.val < x;          p := fresh_1;          n := p.next;          guard_0 := n == null || n.val > x;          if (guard_0)         {             t := New Node;              t.val := x;              t.next := n;              p.next := t;              wasPresent := false;         }         else         {             wasPresent := true;         }
+Command: simulate Call_13@Insert havoc fresh_0;         assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;         fresh_1 := fresh_0;         assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);         fresh_2 := fresh_1.next;         fresh_3 := fresh_2 != null && fresh_2.val < x;          p := fresh_1;          n := p.next;          guard_0 := n == null || n.val > x;          if (guard_0)         {             t := New Node;              t.val := x;              t.next := n;              p.next := t;              wasPresent := false;         }         else         {             wasPresent := true;         }
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // None-mover
+        havoc fresh_0;
+        assume ReachBetween(Node_next, list.head, fresh_0, null) && fresh_0 != null;
+        fresh_1 := fresh_0;
+        assume (forall k: Node :: ReachBetween(Node_next, list.head.next, k, null) && !ReachBetween(Node_next, fresh_1.next, k, null) && k != null ==> k.val < x);
+        fresh_2 := fresh_1.next;
+        fresh_3 := fresh_2 != null && fresh_2.val < x;
+        p := fresh_1;
+        n := p.next;
+        guard_0 := n == null || n.val > x;
+        if (guard_0)
+        {
+            t := New Node;
+            t.val := x;
+            t.next := n;
+            p.next := t;
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head, e, null) && ReachBetween(Node_next, list.head, f, null) && e != null && f != null && ReachBetween(Node_next, e, f, null) ==> e.val < f.val);
+
+#########################################################################
+#########################################################################
+After the command: simulate Call_13@Insert if ((forall e:Node :: ReachBetween(Node_next, list.head.next, e, null) && e != null ==> e.val != x)) {       havoc p;    assume ReachBetween(Node_next, list.head, p, null) && p != null;       assume (p == list.head || p.val < x) && (p.next == null || x < p.next.val);       t := New Node;       t.val := x;       t.next := p.next;       p.next := t;       wasPresent := false;     } else {       wasPresent := true;     } havoc fresh_0, fresh_1, fresh_2, fresh_3, guard_0;
+Command: simulate Call_13@Insert if ((forall e:Node :: ReachBetween(Node_next, list.head.next, e, null) && e != null ==> e.val != x)) {       havoc p;    assume ReachBetween(Node_next, list.head, p, null) && p != null;       assume (p == list.head || p.val < x) && (p.next == null || x < p.next.val);       t := New Node;       t.val := x;       t.next := p.next;       p.next := t;       wasPresent := false;     } else {       wasPresent := true;     } havoc fresh_0, fresh_1, fresh_2, fresh_3, guard_0;
+#########################################################################
+type Data = int;
+
+record Node {
+  next: Node;
+  val: Data;
+  lock: boolean;
+  alloc: boolean;
+}
+
+const unique null: Node;
+
+record List {
+  head: Node;
+  alloc: boolean;
+}
+
+invariant (forall list: List :: { List_head[list] } list.head != null);
+
+procedure Insert(list: List, x: Data) returns (wasPresent: bool);
+  modifies Node_alloc, Node_val, Node_next, Node_lock, aux;
+
+
+
+implementation Insert(list: List, x: Data) returns (wasPresent: bool)
+{
+  var p: Node;
+  var n: Node;
+  var t: Node;
+  var guard_0: bool;
+  var fresh_0: Node;
+  var fresh_1: Node;
+  var fresh_2: Node;
+  var fresh_3: bool;
+
+  Call_13:
+    atomic { // None-mover
+        if ((forall e: Node :: ReachBetween(Node_next, list.head.next, e, null) && e != null ==> e.val != x))
+        {
+            havoc p;
+            assume ReachBetween(Node_next, list.head, p, null) && p != null;
+            assume (p == list.head || p.val < x) && (p.next == null || x < p.next.val);
+            t := New Node;
+            t.val := x;
+            t.next := p.next;
+            p.next := t;
+            wasPresent := false;
+        }
+        else
+        {
+            wasPresent := true;
+        }
+
+        havoc fresh_0, fresh_1, fresh_2, fresh_3, guard_0;
+    }
+}
+
+
+
+function ReachBetween<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachAvoiding<T>(f: [T]T, x: T, y: T, z: T) returns (bool);
+
+function ReachBetweenSet<T>(f: [T]T, x: T, z: T) returns ([T]bool);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetweenSet(f, x, z)[y] } ReachBetweenSet(f, x, z)[y] <==> ReachBetween(f, x, y, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z), ReachBetweenSet(f, x, z) } ReachBetween(f, x, y, z) ==> ReachBetweenSet(f, x, z)[y]);
+
+axiom (forall<T> f: [T]T, x: T, z: T :: { ReachBetweenSet(f, x, z) } ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T :: ReachBetween(f, x, x, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, y, z, w), f[x] } ReachBetween(f, x, f[x], f[x]));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } ReachBetween(f, x, y, y) ==> x == y || ReachBetween(f, x, f[x], y));
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { f[x], ReachBetween(f, x, y, y) } f[x] == x && ReachBetween(f, x, y, y) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T :: { ReachBetween(f, x, y, x) } ReachBetween(f, x, y, x) ==> x == y);
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, x, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, x, z, z) ==> ReachBetween(f, x, y, z) || ReachBetween(f, x, z, y));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, z) } ReachBetween(f, x, y, z) ==> ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachBetween(f, x, y, y), ReachBetween(f, y, z, z) } ReachBetween(f, x, y, y) && ReachBetween(f, y, z, z) ==> ReachBetween(f, x, z, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, y, w, z) } ReachBetween(f, x, y, z) && ReachBetween(f, y, w, z) ==> ReachBetween(f, x, y, w) && ReachBetween(f, x, w, z));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T, w: T :: { ReachBetween(f, x, y, z), ReachBetween(f, x, w, y) } ReachBetween(f, x, y, z) && ReachBetween(f, x, w, y) ==> ReachBetween(f, x, w, z) && ReachBetween(f, w, y, z));
+
+axiom (forall<T> f: [T]T, u: T, x: T :: { ReachBetween(f, u, x, x) } ReachBetween(f, u, x, x) ==> ReachBetween(f, u, u, x));
+
+axiom (forall<T> f: [T]T, x: T, y: T, z: T :: { ReachAvoiding(f, x, y, z) } { ReachBetween(f, x, y, z) } ReachAvoiding(f, x, y, z) <==> ReachBetween(f, x, y, z) || (ReachBetween(f, x, y, y) && !ReachBetween(f, x, z, z)));
+
+axiom (forall<T> f: [T]T, u: T, v: T, x: T, p: T, q: T :: { ReachAvoiding(f[p := q], u, v, x) } ReachAvoiding(f[p := q], u, v, x) <==> (ReachAvoiding(f, u, v, p) && ReachAvoiding(f, u, v, x)) || (ReachAvoiding(f, u, p, x) && p != x && ReachAvoiding(f, q, v, p) && ReachAvoiding(f, q, v, x)));
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+type Exception;
+
+const unique ExReturn: Exception;
+
+const unique ExSkip: Exception;
+
+const unique ExBreak: Exception;
+
+const unique ExContinue: Exception;
+
+type boolean;
+
+const unique True: boolean;
+
+const unique False: boolean;
+
+invariant (forall b: boolean :: b == True || b == False);
+
+var aux: [Node]int;
+
+invariant (forall x: Node :: { Node_lock[x] } { aux[x] } x.lock != True <==> aux[x] == 0);
+
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> node.alloc == True) && (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+
+invariant (forall list: List, e: Node, f: Node :: ReachBetween(Node_next, list.head, e, null) && ReachBetween(Node_next, list.head, f, null) && e != null && f != null && ReachBetween(Node_next, e, f, null) ==> e.val < f.val);
+

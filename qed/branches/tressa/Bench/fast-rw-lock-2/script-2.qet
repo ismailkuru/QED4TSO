@@ -1,0 +1,189 @@
+inline all
+nullcheck
+reduce all
+assert Atomic_10@writerLock pred.next == null
+assert Atomic_10@writerLock I != null
+abstract read Lelem_next Atomic_12@writerUnlock
+assert Atomic_25 pred.next == null
+assert Atomic_25 I != null
+mutexptr held (forall I: Lelem :: I.EL == True)
+assert Atomic_39 held[I] == tid
+assert Atomic_40 held[I] == tid
+assert Call_37 held[p] == tid
+assert Atomic_66 held[I] == tid
+assert Atomic_43 held[I] == tid
+assert Atomic_44 held[I] == tid
+assert Atomic_45 held[I] == tid
+assert Atomic_67 held[I] == tid
+assert Atomic_54 held[I] == tid
+assert Atomic_55 held[I] == tid
+assert Atomic_56 held[I] == tid
+abstract read Lelem_next Atomic_32
+abstract read Lelem_prev Atomic_33
+hoist Atomic_5 after
+aux intro owner [Lelem]int
+annotate Atomic_5@writerLock owner owner[I] := tid;
+annotate Atomic_5_else@writerLock owner owner[I] := tid;
+annotate Atomic_18 owner owner[I] := tid;
+aux remove owner
+assert proc writerUnlock owner[I] == tid
+assert proc readerUnlock owner[I] == tid
+assert Atomic_10 owner[I] == tid
+assert Atomic_11 owner[I] == tid
+assert stmt Atomic_24 owner[I] == tid
+assert stmt Atomic_28 owner[I] == tid
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> owner[L] == 0)
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> L.next == null)
+assert Call_41 IsAlloc(pp.alloc)
+invariant IsAlloc(L.alloc) || IsNull(L.alloc)
+assert Atomic_10 pred != L
+assert Atomic_25 pred != L
+assert Call_41 pp.next == null
+assert Atomic_45 I.prev != L
+invariant L.next == null
+aux intro wlock Lelem
+aux intro rlock [Lelem]boolean
+annotate Atomic_5_else wlock wlock := I;
+mover Atomic_12
+merge all
+simulate Atomic_12 assert owner[I] == tid;         havoc abst_Lelem_next_0;         assert IsAlloc(I.alloc);         guard_0 := abst_Lelem_next_0[I] == null;          assert IsAlloc(I.alloc);         if (guard_0)         {             assert true;             tmp := L;             if (L == I)             {                 L := null; wlock := null;                             return;             }         }
+simulate Atomic_17 assert owner[I] == tid;         assert IsAlloc(I.next.alloc);         assert IsAlloc(I.alloc);         I.next.spin := 0;         if (I.next.state == WRITER)         {             wlock := I.next;         } else { rlock[I.next] := True; wlock := null;}
+hoist Atomic_18 after
+annotate Atomic_18_else rlock rlock[I] := True;
+simulate Atomic_65 assert owner[I] == tid;             if (nextState == READER)             {                 assert I.next.alloc == Alloc;                 assert I.alloc == Alloc;                 I.next.spin := 0; rlock[I.next] := True;             }
+simulate Atomic_55 assert owner[I] == tid;             assert held[I] == tid;             assert I.next.alloc == Alloc;             assert I.alloc == Alloc;             I.next.spin := 0;  if(I.next.state == WRITER) { wlock := I.next; } else { rlock[I.next] := True; }
+annotate Call_46 rlock rlock[I] := False;
+assert Call_52 wlock == null
+annotate Call_50 rlock rlock[I] := False;
+aux remove wlock
+aux remove rlock
+assert proc writerUnlock wlock == I
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> rlock[L] == False)
+assert proc writerUnlock I.state == WRITER
+assert proc readerUnlock I.state == ACTIVE_READER
+assert Atomic_55 L != null
+invariant L == null ==> wlock == null
+assert Call_37 p.state != WRITER
+assert Atomic_45 I.prev.state != WRITER
+assert Atomic_55 wlock == null
+mover Atomic_15
+merge all
+assert Atomic_24 IsAlloc(pred.alloc)
+assert Atomic_24 I.prev == null
+assert Atomic_24 (forall L: Lelem :: { Lelem_next[L] } L.next != I)
+mover Atomic_24
+merge all
+assert Atomic_44 wlock == null
+simulate Atomic_15 assert I.state == WRITER;         assert wlock == I;         assert owner[I] == tid;         assert I.alloc == Alloc;         assume I.next != null;          assert I.state == WRITER;         assert wlock == I;         assert owner[I] == tid;         assert I.next.alloc == Alloc;         assert I.alloc == Alloc; assert I.next.state != ACTIVE_READER;         I.next.prev := null;
+assert Atomic_31 wlock == null
+mover Atomic_15
+merge all
+hoist Atomic_28 after
+simulate Atomic_28 assert owner[I] == tid;             assert I.alloc == Alloc;             n := I.next;              assume n != null; assert I.next.state == READER || I.next.state == WRITER;
+assert Call_37 p.next == I
+assert Atomic_31 rlock[I] == True
+simulate Atomic_28 assert owner[I] == tid;             assert I.alloc == Alloc;             n := I.next;             assume n != null;             assert I.next.state == READER || I.next.state == WRITER; assert rlock[I.next] == False;
+assert Atomic_28 wlock == null
+assert Atomic_28 rlock[I] == True
+assert Atomic_65 wlock == null
+assert Atomic_65 L != null
+assert Call_52 L != null
+simulate Call_52 assert L != null;             assert wlock == null;             assert I.state == ACTIVE_READER;             assert owner[I] == tid;             tmp := L;             if (L == I)             { assert (forall K:Lelem :: rlock[K] == False);                 L := null;   }
+assert Atomic_28 L != null
+assert Atomic_10 (forall K: Lelem :: { Lelem_next[K] } K.next != I)
+assert Atomic_25 (forall K: Lelem :: { Lelem_next[K] } K.next != I)
+assert Atomic_45 held[p] == tid
+assert Atomic_45 I.prev == p
+simulate Atomic_28 assert L != null;             assert rlock[I] == True;             assert wlock == null;             assert owner[I] == tid;             assert I.alloc == Alloc;             n := I.next;             assume n != null;             assert I.next.state == READER || I.next.state == WRITER;             assert rlock[I.next] == False; assert I.next.state == READER ==> I.next.prev == I;
+simulate Atomic_65 assert L != null;             assert wlock == null;             assert owner[I] == tid;             if (nextState == READER)             { assert I.next.prev == I;                 assert I.next.alloc == Alloc;                 assert I.alloc == Alloc;                 I.next.spin := 0;                 rlock[I.next] := True;             }
+assert Atomic_65 nextState == I.next.state
+assert Atomic_44 I.next.state != WRITER ==> I.next.prev == I
+assert Atomic_44 I.next.state == WRITER ==> I.next.prev == I || I.next.prev == null
+assert Atomic_45 I.prev.next == I
+assert Atomic_55 I.next.state != WRITER ==> I.next.prev == I
+assert Atomic_55 IsAlloc(I.next.alloc)
+assert Atomic_56 I.next.state != WRITER ==> I.next.prev == I
+simulate Atomic_55 assert IsAlloc(I.next.alloc);             assert I.next.state != WRITER ==> I.next.prev == I;             assert wlock == null;             assert L != null;             assert I.state == ACTIVE_READER;             assert owner[I] == tid;             assert held[I] == tid;             assert I.next.alloc == Alloc;             assert I.alloc == Alloc;             I.next.spin := 0;             if (I.next.state == WRITER)             { assert (forall L:Lelem:: rlock[L] == False);                 wlock := I.next;             }             else             {                 rlock[I.next] := True;             }
+mover Atomic_28
+merge all
+mover Atomic_28
+merge all
+invariant (forall L: Lelem :: IsDealloc(L.alloc) ==> (forall K: Lelem :: K.next != L))
+simulate Atomic_80 if (*)         {             assert L != null;             assert rlock[I] == True;             assert wlock == null;             assert owner[I] == tid;             assert I.alloc == Alloc;             n := I.next;             assume n != null;             assert I.next.state == READER || I.next.state == WRITER;             assert rlock[I.next] == False;             assert I.next.state == READER ==> I.next.prev == I;              assert owner[I] == tid;             assert I.next.alloc == Alloc;             assert I.alloc == Alloc;             nextState := I.next.state;              assert nextState == I.next.state;             assert L != null;             assert wlock == null;             assert owner[I] == tid;             if (nextState == READER)             {                 assert I.next.prev == I;                 assert I.next.alloc == Alloc;                 assert I.alloc == Alloc;                 I.next.spin := 0;                 rlock[I.next] := True;             }         }         else         {             assert owner[I] == tid;             assert I.alloc == Alloc; havoc n;         }
+hoist Atomic_39 after
+simulate Atomic_39_else assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.alloc == Alloc;                     havoc n;
+simulate Atomic_39 assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.alloc == Alloc; havoc n;
+hoist Atomic_43 after
+simulate Atomic_43_else assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.alloc == Alloc; havoc n;
+mover Atomic_43
+merge all
+assert Atomic_43 L != null
+assert Atomic_31 I.state == READER
+assert Atomic_43 held[I.prev] == tid
+assert Atomic_40 held[I.prev] == tid
+simulate Atomic_43 assert held[I.prev] == tid;                     assert L != null;                     assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.alloc == Alloc;                     n := I.next;                      assume n != null;                      assert I.next.state != WRITER ==> I.next.prev == I;                     assert I.next.state == WRITER ==> I.next.prev == I || I.next.prev == null;                      assert wlock == null;                     assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.next.alloc == Alloc;                     assert I.alloc == Alloc;                     assert I.alloc == Alloc;                     I.next.prev := I.prev;
+assert Atomic_43 IsAlloc(I.prev.alloc)
+assume Atomic_43 owner[I] == tid && held[I] == tid && I.alloc == Alloc && rlock[I] == True && I.state == ACTIVE_READER && I.next != null
+mover Atomic_86
+merge all
+hoist Call_50 after
+simulate Call_50 assert I.state == ACTIVE_READER;             assert owner[I] == tid;             assert true;             assert I.alloc == Alloc;             assume I.EL == False;             assert I.alloc == Alloc;             I.EL := True;             assert I.alloc == Alloc;             held[I] := tid;              rlock[I] := False;  havoc n;
+hoist Atomic_54 after
+simulate Atomic_54_else assert I.state == ACTIVE_READER;             assert rlock[I] == True;             assert owner[I] == tid;             assert held[I] == tid;             assert I.alloc == Alloc; havoc n;
+mover Atomic_54
+merge all
+assume Atomic_54 owner[I] == tid && held[I] == tid && I.alloc == Alloc && I.state == ACTIVE_READER && I.next.alloc == Alloc
+mover Atomic_89
+merge all
+mover Atomic_10
+merge all
+mover Atomic_25
+merge all
+mover Atomic_32
+merge all
+hoist Atomic_34 after
+mover Atomic_34
+merge all
+mover Atomic_39
+merge all
+mover Atomic_39
+merge all
+simulate Atomic_5_else I := New Lelem;             assert I.alloc == Alloc;             I.state := WRITER;             assert I.alloc == Alloc;             I.spin := 1;             assert I.alloc == Alloc;             I.next := null;             assert true;             pred := L;             L := I;              assume pred == null; assert (forall K:Lelem:: rlock[K] == False);             owner[I] := tid;              wlock := I;
+simulate Atomic_26 assert owner[I] == tid;             assert pred.alloc == Alloc;             predState := pred.state; if(*) { if(*){ predState := READER; } else { predState := WRITER; } }
+mover Atomic_26
+merge all
+mover Atomic_31
+merge all
+assert Atomic_39 I.prev != null
+simulate Atomic_66 assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     if (*)                     {                         assert I.alloc == Alloc;                         assume I.next != null;                     }
+mover Atomic_66
+merge all
+assert Call_50 I.prev == null
+mover Call_50
+merge all
+simulate Atomic_67 assert I.state == ACTIVE_READER;            assert owner[I] == tid;             assert held[I] == tid;             if (*)             {                 assert I.alloc == Alloc;                 assume I.next != null;             }
+mover Atomic_67
+merge all
+simulate Atomic_89 assert owner[I] == tid && held[I] == tid && I.alloc == Alloc && I.state == ACTIVE_READER && I.next.alloc == Alloc;              assert I.next.state != WRITER ==> I.next.prev == I;             assert I.state == ACTIVE_READER;             assert owner[I] == tid;             assert held[I] == tid;             assert I.next.alloc == Alloc;             assert I.alloc == Alloc;             I.next.prev := null;
+simulate Atomic_15 assert I.state == WRITER;         assert wlock == I;         assert owner[I] == tid;         assert I.alloc == Alloc;         assume I.next != null; assert I.next.state != WRITER ==> I.next.prev == I;         assert I.state == WRITER;         assert wlock == I;         assert owner[I] == tid;         assert I.next.alloc == Alloc;         assert I.alloc == Alloc;         assert I.next.state != ACTIVE_READER;         I.next.prev := null;         assert I.state == WRITER;         assert wlock == I;         assert owner[I] == tid;         assert IsAlloc(I.next.alloc);         assert IsAlloc(I.alloc);         I.next.spin := 0;         if (I.next.state == WRITER)         {             wlock := I.next;         }         else         {             rlock[I.next] := True;             wlock := null;         }
+assert Atomic_89 (forall K: Lelem :: K != I ==> I.next != K.next)
+mover Atomic_89
+mover Atomic_34
+merge all
+simulate Atomic_43 assert IsAlloc(I.prev.alloc);                     assert held[I.prev] == tid;                     assert L != null;                     assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.alloc == Alloc;                     n := I.next;                     assume n != null; assert (forall K:Lelem:: K != I ==> K.next != I.next);                     assert I.next.state != WRITER ==> I.next.prev == I;                     assert I.next.state == WRITER ==> I.next.prev == I || I.next.prev == null;                     assert wlock == null;                     assert I.state == ACTIVE_READER;                     assert rlock[I] == True;                     assert owner[I] == tid;                     assert held[I] == tid;                     assert I.next.alloc == Alloc;                     assert I.alloc == Alloc;                     assert I.alloc == Alloc;                     I.next.prev := I.prev;
+mover Atomic_43
+merge all
+assert Call_46 L != null && wlock == null
+assert Call_46 L != null && wlock == null
+assert Atomic_89 I.prev == null
+assume Atomic_5 I.state == WRITER && owner[I] == tid && IsAlloc(I.alloc)
+mover Atomic_100
+merge proc writerLock
+check writerLock block
+pre writerUnlock I.state == WRITER && wlock == I && owner[I] == tid && IsAlloc(I.alloc)
+mover Atomic_101
+merge proc writerUnlock
+check writerUnlock block
+assume Atomic_101 I.state == WRITER && wlock == I && owner[I] == tid && IsAlloc(I.alloc)
+mover Atomic_101
+merge proc writerUnlock

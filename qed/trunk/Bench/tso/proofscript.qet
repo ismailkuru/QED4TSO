@@ -1,0 +1,52 @@
+assert Atomic_44 senderThread == tid
+aux begin ownerMap [int]TID
+assert Atomic_44 Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == 0
+assert Atomic_44 Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+assert Call_45 senderThread == tid
+assert Call_45 Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == 0
+assert Call_45 Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+assert Call_46 senderThread == tid
+assert Call_46 Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == 0
+assert Call_46 Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+assert Atomic_47 senderThread == tid
+assert Atomic_47 flagLocal == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Atomic_47 flagLocal == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assume Atomic_47 ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread
+assert Call_48 senderThread == tid
+assert Call_48 flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Call_49 senderThread == tid
+assert Call_49 flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Call_50 senderThread == tid
+assert Call_50 flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Call_51 senderThread == tid
+assert Call_51 flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Call_52 senderThread == tid
+assert Call_52 flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Atomic_53 recvThread == tid
+assert Atomic_53 Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == 0
+assert Atomic_53 Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+assert Call_54 recvThread == tid
+assert Call_54 Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal == 0
+assert Call_54 Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+assert Atomic_55 recvThread == tid
+assert Atomic_55 flagLocal == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+assert Atomic_55 flagLocal == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assume Atomic_55 ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread
+assert Call_56 recvThread == tid
+assert Call_56 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assert Call_57 recvThread == tid
+assert Call_57 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assert Call_58 recvThread == tid
+assert Call_58 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assert Call_58 result == Mem[addrX]
+assert Call_58 recvThread == tid
+assert Call_58 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assert Call_59 recvThread == tid
+assert Call_59 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+assert Call_60 recvThread == tid
+assert Call_60 flagLocal == 1 && ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrFlag] == 1
+aux end ownerMap
+inline all
+mover all
+merge all
+check all block

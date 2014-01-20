@@ -1,0 +1,44 @@
+reduce all
+mover Atomic_1
+inline all
+assert Atomic_13 pred.mutex.owner == tid
+assert Atomic_14 curr.mutex.owner == tid
+assert Atomic_40 pred.mutex.owner == tid
+assert Atomic_24 n1.mutex.owner == tid && n3.mutex.owner == tid
+assert Atomic_32 n1.mutex.owner == tid && n2.mutex.owner == tid
+assert Atomic_33 n1.mutex.owner == tid && n2.mutex.owner == tid
+assert Atomic_34 n1.mutex.owner == tid && n2.mutex.owner == tid
+reduce proc validate
+inline all
+reduce proc locate
+peelout Atomic_1
+simulate Atomic_1_dup 
+check all block
+simulate Atomic_1_dup havoc pred, curr;             assume pred.val < e;             assume curr.val >= e;             assume IsAlloc(pred.alloc) && IsAlloc(curr.alloc);             assume pred.marked == False && curr.marked == False ==> ReachBetween(Node_next, Head, pred, curr);              assume pred.mutex.owner == 0;             pred.mutex.owner := tid;              assume curr.mutex.owner == 0;             curr.mutex.owner := tid;             assume pred.marked == False; assume curr.marked == False; assume pred.next == curr; havoc valid;
+simulate Atomic_1 havoc pred, curr, valid;
+reduce proc locate
+reduce loop Atomic_1 havoc pred, curr, valid;
+reduce proc locate
+simulate Atomic_62 havoc pred, curr;             assume pred.val < e;             assume curr.val >= e;             assume IsAlloc(pred.alloc) && IsAlloc(curr.alloc);             assume pred.marked == False && curr.marked == False ==> ReachBetween(Node_next, Head, pred, curr);             assume pred.mutex.owner == 0;             pred.mutex.owner := tid;             assume curr.mutex.owner == 0;             curr.mutex.owner := tid;             assume pred.marked == False;             assume curr.marked == False;             assume pred.next == curr;             havoc valid;
+inline proc
+inline locate
+mover Call_46
+merge all
+check all block
+reduce proc Remove
+hoist Call_49 after
+reduce proc Remove
+check all block
+mover Call_49_then
+mover Atomic_33
+assert Atomic_33 IsAlloc(n2.alloc)
+mover Atomic_33
+merge all
+mover proc Remove
+assume Call_49_then n1.val < e && n2.val >= e && IsAlloc(n1.alloc) && IsAlloc(n2.alloc) && n1.marked == False && n2.marked == False ==> ReachBetween(Node_next, Head, n1, n2) && n1.mutex.owner == tid && n2.mutex.owner == tid && n1.marked == False && n2.marked == False && n1.next == n2
+mover Atomic_66
+assume Call_49_then n1.val < e && n2.val >= e && IsAlloc(n1.alloc) && IsAlloc(n2.alloc) && n1.marked == False && n2.marked == True && ReachBetween(Node_next, Head, n1, n2) && n1.mutex.owner == tid && n2.mutex.owner == tid && n1.next == n2
+mover Atomic_51
+merge all
+check all block
+mover proc Remove

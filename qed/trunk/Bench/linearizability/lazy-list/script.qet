@@ -1,0 +1,64 @@
+inline all
+
+reduce all
+
+hoist Call_21 after
+hoist Call_28 before
+
+reduce proc remove
+
+
+simulate Call_21_else assume true;
+
+# introduce all invariants
+include invariants.qet
+
+simulate Atomic_1 \\
+	 assume MIN_INT < e && e < MAX_INT; \\
+	 pred := Head; \\
+	 havoc curr; \\
+	 assume ReachBetweenSet(Node_next, curr, Tail)[Tail];
+#	 assume (forall n: Node :: { ReachBetweenSet(Node_next, pred, curr)[n]}{n.key} ReachBetweenSet(Node_next, pred, curr)[n] && n != curr ==> n.key <= e);
+
+simulate Atomic_4 \\
+	 assume MIN_INT < e && e < MAX_INT; \\
+	 assume curr.key < e; \\
+	 assert ReachBetweenSet(Node_next, curr.next, Tail)[Tail]; \\
+	 pred := curr; \\
+	 havoc curr; \\
+	 assume ReachBetweenSet(Node_next, curr, Tail)[Tail];
+#	 assume (forall n: Node :: { ReachBetweenSet(Node_next, pred, curr)[n]}{n.key} ReachBetweenSet(Node_next, pred, curr)[n] && n != curr ==> n.key <= e);
+
+check all
+
+check loop Atomic_4
+
+simulate Atomic_1 \\
+	 assume MIN_INT < e && e < MAX_INT; \\
+	 havoc pred, curr; \\
+	 assume pred.key < e; \\
+	 assume ReachBetweenSet(Node_next, pred, Tail)[Tail]; \\
+	 assume ReachBetweenSet(Node_next, curr, Tail)[Tail];
+
+reduce loop2 Atomic_1
+
+# locate gets atomic after this command
+reduce proc locate
+
+inline locate
+
+reduce proc add
+
+hoist Call_20 after
+
+reduce proc remove
+
+check all
+
+#mover Atomic_1
+
+#reduce loop2 Atomic_1
+
+#reduce proc contains
+
+#check all

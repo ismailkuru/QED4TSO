@@ -1,0 +1,1751 @@
+Proof steps of program: increment.bpl
+#########################################################################
+#########################################################################
+Original program
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:isatomic true} {:ispublic false} CAS(x: X, a: int, b: int) returns (r: bool);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation CAS(x: X, a: int, b: int) returns (r: bool)
+{
+  var pc: int;
+
+  Atomic_1:
+    atomic { // None-mover
+        if (*)
+        {
+            assume x.v == a;
+            x.v := b;
+            r := true;
+        }
+        else
+        {
+            assume x.v != a;
+            r := false;
+        }
+    }
+}
+
+
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            assume true;
+        }
+
+      Atomic_4:
+        atomic { // None-mover
+            t := x.v;
+        }
+
+      Call_5:
+          call b := CAS(x, t, t + 1);
+
+        if (*)
+        {
+          Atomic_6:
+            atomic { // None-mover
+                assume b;
+            }
+
+          Atomic_7:
+            atomic { // None-mover
+                break;
+            }
+        }
+        else
+        {
+          Atomic_8:
+            atomic { // None-mover
+                assume !b;
+            }
+        }
+    }
+
+  Atomic_2:
+    atomic { // None-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // None-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // None-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // None-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: inline CAS
+Command: inline CAS
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            assume true;
+        }
+
+      Atomic_4:
+        atomic { // None-mover
+            t := x.v;
+        }
+
+      Call_5:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+        }
+
+        if (*)
+        {
+          Atomic_6:
+            atomic { // None-mover
+                assume b;
+            }
+
+          Atomic_7:
+            atomic { // None-mover
+                break;
+            }
+        }
+        else
+        {
+          Atomic_8:
+            atomic { // None-mover
+                assume !b;
+            }
+        }
+    }
+
+  Atomic_2:
+    atomic { // None-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // None-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // None-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // None-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: peelout Atomic_3@inc
+Command: peelout Atomic_3@inc
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            assume true;
+        }
+
+      Atomic_4:
+        atomic { // None-mover
+            t := x.v;
+        }
+
+      Call_5:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+        }
+
+        if (*)
+        {
+          Atomic_6:
+            atomic { // None-mover
+                assume b;
+            }
+
+          Atomic_7:
+            atomic { // None-mover
+                assume false;
+            }
+        }
+        else
+        {
+          Atomic_8:
+            atomic { // None-mover
+                assume !b;
+            }
+        }
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+        }
+
+      Atomic_4_dup:
+        atomic { // None-mover
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+        }
+
+        if (*)
+        {
+          Atomic_6_dup:
+            atomic { // None-mover
+                assume b;
+            }
+
+          Atomic_7_dup:
+            atomic { // None-mover
+                goto Atomic_2;
+            }
+        }
+        else
+        {
+          Atomic_8_dup:
+            atomic { // None-mover
+                assume !b;
+            }
+        }
+
+      Atomic_13:
+        atomic { // None-mover
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // None-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // None-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // None-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // None-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                assume false;
+            }
+            else
+            {
+                assume !b;
+            }
+        }
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: simulate Atomic_3@inc havoc t;
+Command: simulate Atomic_3@inc havoc t;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            havoc t;
+        }
+
+      Call_5:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                assume false;
+            }
+            else
+            {
+                assume !b;
+            }
+        }
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: simulate Call_5@inc assume true; havoc b;
+Command: simulate Call_5@inc assume true; havoc b;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // None-mover
+            havoc t;
+        }
+
+      Call_5:
+        atomic { // None-mover
+            assume true;
+            havoc b;
+        }
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_3:
+        atomic { // Both-mover
+            havoc t;
+
+            assume true;
+            havoc b;
+        }
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: reduce loop Atomic_3@inc havoc t; havoc b;
+Command: reduce loop Atomic_3@inc havoc t; havoc b;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+  Atomic_18_else:
+    atomic { // None-mover
+        havoc t;
+        havoc b;
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            assume true;
+
+            t := x.v;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: simulate Atomic_3_dup@inc havoc t;
+Command: simulate Atomic_3_dup@inc havoc t;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+  Atomic_18_else:
+    atomic { // None-mover
+        havoc t;
+        havoc b;
+    }
+
+    if (*)
+    {
+      Atomic_3_dup:
+        atomic { // None-mover
+            havoc t;
+        }
+
+      Call_5_dup:
+        atomic { // None-mover
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+    }
+
+  Atomic_2:
+    atomic { // Both-mover
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+  Atomic_18_else:
+    atomic { // Both-mover
+        havoc t;
+        havoc b;
+
+        if (*)
+        {
+            havoc t;
+
+            // call b := CAS(x, t, t + 1);
+            if (*)
+            {
+                assume x.v == t;
+                x.v := t + 1;
+                b := true;
+            }
+            else
+            {
+                assume x.v != t;
+                b := false;
+            }
+
+            if (*)
+            {
+                assume b;
+
+                goto Atomic_2;
+            }
+            else
+            {
+                assume !b;
+            }
+
+            assume false;
+        }
+
+      Atomic_2:
+
+        assume !true;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: simulate Atomic_18_else@inc havoc t; x.v := x.v + 1;
+Command: simulate Atomic_18_else@inc havoc t; x.v := x.v + 1;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+procedure {:ispublic false} inc(x: X);
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation inc(x: X)
+{
+  var t: int;
+  var b: bool;
+  var pc: int;
+
+  Atomic_18_else:
+    atomic { // None-mover
+        havoc t;
+        x.v := x.v + 1;
+    }
+}
+
+
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+          call inc(g);
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: inline inc
+Command: inline inc
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+        }
+
+      Call_11:
+        atomic { // None-mover
+            // call inc(g);
+            havoc fresh_0;
+            g.v := g.v + 1;
+        }
+
+      Atomic_12:
+        atomic { // Both-mover
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+
+            // call inc(g);
+            havoc fresh_0;
+            g.v := g.v + 1;
+
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+#########################################################################
+#########################################################################
+After the command: aux intro oldn int
+Command: aux intro oldn int
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+    while (*)
+    {
+      Atomic_10:
+        atomic { // Both-mover
+            assume 0 < n;
+
+            // call inc(g);
+            havoc fresh_0;
+            g.v := g.v + 1;
+
+            n := n - 1;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+var oldn: int;
+
+#########################################################################
+#########################################################################
+After the command: reduce loop Atomic_10@add if(*) { assume 0 < n; oldn := n; havoc n; assume 0 <= n && n <= oldn; g.v := g.v + oldn - n; havoc fresh_0; }
+Command: reduce loop Atomic_10@add if(*) { assume 0 < n; oldn := n; havoc n; assume 0 <= n && n <= oldn; g.v := g.v + oldn - n; havoc fresh_0; }
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies oldn, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, oldn, X_v, X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+  Atomic_23_else:
+    atomic { // None-mover
+        if (*)
+        {
+            assume 0 < n;
+            oldn := n;
+            havoc n;
+            assume 0 <= n && n <= oldn;
+            g.v := g.v + oldn - n;
+            havoc fresh_0;
+        }
+    }
+
+  Atomic_9:
+    atomic { // Both-mover
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+var oldn: int;
+
+#########################################################################
+#########################################################################
+After the command: reduce all
+Command: reduce all
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies oldn, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, oldn, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+  Atomic_23_else:
+    atomic { // Both-mover
+        if (*)
+        {
+            assume 0 < n;
+            oldn := n;
+            havoc n;
+            assume 0 <= n && n <= oldn;
+            g.v := g.v + oldn - n;
+            havoc fresh_0;
+        }
+
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+var oldn: int;
+
+#########################################################################
+#########################################################################
+After the command: simulate Atomic_23_else@add if (*) { assume 0 < n; g.v := g.v + n; n := 0; havoc fresh_0; } assume 0 >= n;
+Command: simulate Atomic_23_else@add if (*) { assume 0 < n; g.v := g.v + n; n := 0; havoc fresh_0; } assume 0 >= n;
+#########################################################################
+record X {
+  v: int;
+  alloc: bool;
+}
+
+var g: X;
+
+procedure add();
+  modifies X_v, oldn, X_v, X_v, X_v, X_v, X_v, X_v, X_v, X_v;
+
+
+
+implementation add()
+{
+  var n: int;
+  var pc: int;
+  var fresh_0: int;
+
+  Atomic_23_else:
+    atomic { // None-mover
+        if (*)
+        {
+            assume 0 < n;
+            g.v := g.v + n;
+            n := 0;
+            havoc fresh_0;
+        }
+
+        assume 0 >= n;
+    }
+}
+
+
+
+const unique tid: int;
+
+const unique tidx: int;
+
+axiom 0 < tid && 0 < tidx && tid != tidx;
+
+var Tid: int;
+
+invariant 0 < Tid && tid <= Tid && tidx <= Tid;
+
+var oldn: int;
+

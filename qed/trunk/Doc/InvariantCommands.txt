@@ -1,0 +1,32 @@
+
+// field not null
+invariant fieldnotnull #1 #2
+invariant (forall x: #1 :: IsAlloc(x.#1.alloc));
+// example: 
+invariant fieldnotnull List head
+invariant (forall x: List :: IsAlloc(x.head.alloc));
+
+// connected to null
+invariant leadstonull #1 #2 #3, #4
+invariant (forall x: #1 :: ReachBetween(#2_#3, x.#4, #5, #6));
+// example:
+invariant leadstonull List Node next
+invariant (forall x: Node :: ReachBetween(Node_next, node, null, null));
+
+// all nodes up to null are allocated
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> IsAlloc(node.alloc));
+// if tail exists:
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, list.tail, list.tail) ==> IsAlloc(node.alloc));
+
+// all non-alloc nodes point to null
+invariant (forall node: Node :: !IsAlloc(node.alloc) ==> node.next == null);
+
+// nobody points to dealloc nodes
+invariant (forall node1,node2: Node :: IsDealloc(node1.alloc) ==> node2.next != node1);
+
+// lists are disjoint
+invariant (forall list1,list2: List, node: Node :: IsAlloc(node.alloc) && list1 != list2 && ReachBetween(QueueItem_next, list1.Head, node, node) ==> !ReachBetween(QueueItem_next, list2.Head, node, node));
+// if tail exists: no need for extra invariant
+
+// unique successor
+invariant (forall L1,L2:Lelem:: IsAlloc(L1.alloc) && IsAlloc(L2.alloc) && L1.next == L2.next ==> L1 == L2);

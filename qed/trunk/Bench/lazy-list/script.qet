@@ -1,0 +1,28 @@
+formula NullNull	IsNull(null.alloc) && (forall e: Entry :: IsNull(e.alloc) <==> e == null)
+formula TailNext	Tail.next == null
+formula NullNext 	null.next == null
+formula NextUnmarked	null.marked == False
+formula HeadKey 	Head.key == MIN_INT
+formula TailKey 	Tail.key == MAX_INT
+formula HeadUnmarked	Head.marked == False
+formula TailUnmarked	Tail.marked == False
+formula NextKey		(forall e: Entry :: IsAlloc(e.alloc) && e.next != null ==> e.key < e.next.key)
+formula HeadTailNull	ReachBetween(Node_next, Head, Tail, null)
+formula AllocReachTail	(forall e: Entry :: IsAlloc(e.alloc) <==> ReachBetween(Entry_next, e, Tail, null))
+formula NextDifferent	(forall e: Entry :: IsAlloc(e.alloc) <==> e.next != e)
+formula NoCycle		(forall e: Entry :: IsAlloc(e.alloc) ==> !ReachBetween(Entry_next, e.next, e, e))
+formula Backbone	(forall e: Entry :: ReachBetween(Entry_next, Head, e, Tail) <==> e.marked == False)
+formula NotBackbone	(forall e: Entry :: IsAlloc(e.alloc) && !ReachBetween(Entry_next, Head, e, e) ==> e.marked == True)
+formula Sorted		(forall e, f: Entry :: IsAlloc(e.alloc) && IsAlloc(e.alloc) && e != f && ReachBetween(Entry_next, e, f, f) ==> e.key < f.key)
+formula DeallocNotReach (forall e: Entry :: IsDealloc(e.alloc) ==> !ReachBetween(Entry_next, Head, e, e))
+formula DeallocNext 	(forall e: Entry :: IsDealloc(e.alloc) ==> e.next == e)
+formula Dealloc		(forall e,d: Entry :: IsDealloc(e.alloc) && d.next == e ==> d == e)
+
+
+#reduce all
+#peelout Atomic_4
+#simulate Atomic_4 assume guard;       pred := curr;        curr := curr.next;        guard := curr.val < e;
+#simulate Atomic_4_dup assume false;
+#simulate Atomic_4 assume guard;                havoc pred, curr; assume pred.marked == False && curr.marked == False ==> ReachBetween(Node_next, pred, curr, curr);                 guard := curr.val < e;
+#simulate Atomic_1 havoc pred, curr; assume pred.marked == False && curr.marked == False ==> ReachBetween(Node_next, Head, pred, curr);                  guard := curr.val < e;
+#reduce loop2 Atomic_1

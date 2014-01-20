@@ -1,0 +1,16 @@
+inline all
+mutex aux lock == true
+reduce all
+hoist Call_4@Read after
+reduce all
+hoist Call_4_else@Read after
+reduce all
+abstract read flag Call_4@Read
+reduce all
+mutex bux flag == INIT
+reduce all
+stable cux flag == FULL
+reduce all
+invariant flag == FULL ==> obj != null
+reduce all
+check Read

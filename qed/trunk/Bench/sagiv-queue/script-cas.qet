@@ -1,0 +1,65 @@
+inline all
+nullcheck
+reduce proc CreateQueueItem
+inline all
+assert Call_12 n == NULL_QUEUE_ITEM && (forall q: NBQueue :: q.Head != node && q.Tail != node) && IsAlloc(node.alloc) && node.next == NULL_QUEUE_ITEM && (forall item: QueueItem :: { QueueItem_next[item] } item.next != node)
+simulate Call_14 assert this.alloc == Alloc;                     guard := this.Tail == tail;                     if (guard)                     {                         assert this.alloc == Alloc; assert n != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, this.Tail.next, n, NULL_QUEUE_ITEM);                         this.Tail := n;                     }
+simulate Call_15 assert node != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, tail.next, node, NULL_QUEUE_ITEM) ; assert this.alloc == Alloc;         guard := this.Tail == tail;         if (guard)         {               this.Tail := node;         }
+simulate Call_22 assert this.alloc == Alloc;                         guard := this.Tail == tail;                         if (guard)                         {                             assert this.alloc == Alloc; assert n != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, this.Tail.next, n, NULL_QUEUE_ITEM);                             this.Tail := n;                         }
+simulate Call_24 assert this.alloc == Alloc;                     guard := this.Head == head;                     if (guard)                     {                        assert this.alloc == Alloc; assert n != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, this.Head.next, n, this.Tail);                         this.Head := n;                     }
+invariant (forall item: QueueItem :: !IsAlloc(item.alloc) ==> item.next == NULL_QUEUE_ITEM)
+invariant (forall q: NBQueue, item: QueueItem :: ReachBetween(QueueItem_next, q.Head, item, q.Tail) ==> IsAlloc(item.alloc)) && (forall q: NBQueue :: ReachBetween(QueueItem_next, q.Head, q.Tail, NULL_QUEUE_ITEM)) && (forall q: NBQueue, item: QueueItem :: ReachBetween(QueueItem_next, q.Head, item, NULL_QUEUE_ITEM) && item != NULL_QUEUE_ITEM ==> IsAlloc(item.alloc))
+invariant (forall q1: NBQueue, q2: NBQueue, item: QueueItem :: IsAlloc(item.alloc) && q1 != q2 && (ReachBetween(QueueItem_next, q1.Head, item, item) || ReachBetween(QueueItem_next, item, q1.Head, q1.Head)) ==> !ReachBetween(QueueItem_next, q2.Head, item, item) && !ReachBetween(QueueItem_next, item, q2.Head, q2.Head))
+simulate Atomic_9 assert this.alloc == Alloc; havoc tail; assume ReachBetween(QueueItem_next, tail, this.Tail, this.Tail) && (forall item:QueueItem :: ReachBetween(QueueItem_next, tail, item, this.Tail) ==> IsAlloc(item.alloc));
+simulate Atomic_10 assert tail.alloc == Alloc; havoc n; assume ReachBetween(QueueItem_next, tail.next, n, n);
+simulate Atomic_11 assert this.alloc == Alloc; havoc guard_0;
+reduce proc NBQueue_enqueue
+peelout Atomic_9
+simulate Atomic_9 var k: QueueItem; assert this.alloc == Alloc; assert this.Tail.alloc == Alloc; assert (forall q: NBQueue :: q.Head != node && q.Tail != node) && IsAlloc(node.alloc) && node.next == NULL_QUEUE_ITEM && (forall item: QueueItem :: { QueueItem_next[item] } item.next != node);                 havoc guard_0, guard, tail, n, k;                  if (*)                 {              if(ReachBetween(QueueItem_next, this.Tail.next, k, NULL_QUEUE_ITEM) && k != NULL_QUEUE_ITEM){ this.Tail := k; }                               }
+simulate Call_15 assert node != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, tail.next, node, NULL_QUEUE_ITEM);         assert this.alloc == Alloc;         if (this.Tail == tail)         {             this.Tail := node;         } havoc guard;
+merge all
+simulate Atomic_48 assert this.alloc == Alloc; havoc tail; assume ReachBetween(QueueItem_next, tail, this.Tail, this.Tail) && (forall item: QueueItem :: ReachBetween(QueueItem_next, tail, item, this.Tail) ==> IsAlloc(item.alloc)); havoc guard_0, guard, n, ex; assert (forall q: NBQueue :: q.Head != node && q.Tail != node) && IsAlloc(node.alloc) && node.next == NULL_QUEUE_ITEM && (forall item: QueueItem :: { QueueItem_next[item] } item.next != node);  assume this.Tail.next == NULL_QUEUE_ITEM; this.Tail.next := node; assume ReachBetween(QueueItem_next, tail.next, node, NULL_QUEUE_ITEM);
+simulate Atomic_17 assert this.alloc == Alloc; havoc head; assume ReachBetween(QueueItem_next, head, this.Head, this.Head) && (forall item:QueueItem :: ReachBetween(QueueItem_next, head, item, this.Head) ==> IsAlloc(item.alloc));
+mover Atomic_17
+merge all
+simulate Atomic_17 assert this.alloc == Alloc;             havoc head;             assume ReachBetween(QueueItem_next, head, this.Head, this.Head) && (forall item: QueueItem :: ReachBetween(QueueItem_next, head, item, this.Head) ==> IsAlloc(item.alloc)); havoc tail; assume ReachBetween(QueueItem_next, head, tail, this.Tail) && IsAlloc(tail.alloc);
+mover Atomic_17
+merge all
+simulate Atomic_20 assert this.alloc == Alloc; havoc guard_1;
+mover Atomic_20
+merge all
+hoist Atomic_17 after
+hoist Atomic_17_then after
+check all block
+simulate Atomic_17_else assert this.alloc == Alloc; havoc head, tail, n, guard_1;
+simulate Atomic_17_then_then assert this.alloc == Alloc;                     havoc head;                     assume ReachBetween(QueueItem_next, head, this.Head, this.Head) && (forall item: QueueItem :: ReachBetween(QueueItem_next, head, item, this.Head) ==> IsAlloc(item.alloc));                     havoc tail;                     assume ReachBetween(QueueItem_next, head, tail, this.Tail) && IsAlloc(tail.alloc); if(head.next == NULL_QUEUE_ITEM) {                     n := NULL_QUEUE_ITEM; } else { havoc n; assume ReachBetween(QueueItem_next, head.next, n, NULL_QUEUE_ITEM);}                     havoc guard_1;                     assume head == tail;
+mover Atomic_17_then_then
+merge all
+mover Atomic_17_then_else
+merge all
+mover Atomic_17_then_else
+merge all
+mover Atomic_50
+merge all
+peelout Atomic_58
+merge all
+check all block
+prover off
+simulate Atomic_58 var k: QueueItem; assert this.alloc == Alloc;             havoc guard_1, guard, head, tail, n, result, k;             if (*)             {                 if(ReachBetween(QueueItem_next, this.Tail.next, k, NULL_QUEUE_ITEM) && k != NULL_QUEUE_ITEM) {                 this.Tail := k; }            }
+prover on
+simulate Atomic_62 assert this.alloc == Alloc;             havoc guard_1, guard, head, tail, n, ex; if(*) { assume this.Head.next != NULL_QUEUE_ITEM; assume this.Head != this.Tail;   result := this.Head.next.value;   this.Head := this.Head.next; } return;
+invariant (forall node1: QueueItem, node2: QueueItem :: IsDealloc(node1.alloc) ==> node2.next != node1)
+aux intro owner [QueueItem]int
+annotate Call_8 owner owner[node] := tid;
+annotate Atomic_48 owner owner[node] := 0;
+aux remove owner
+invariant (forall n: QueueItem :: !IsAlloc(n.alloc) ==> owner[n] == 0)
+assert Atomic_9 owner[node] == tid
+assert Atomic_48 owner[node] == tid
+invariant (forall q: NBQueue, n: QueueItem :: ReachBetween(QueueItem_next, q.Head, n, NULL_QUEUE_ITEM) ==> owner[n] == 0)
+invariant (forall node: QueueItem :: owner[node] != 0 ==> (forall q: NBQueue :: q.Head != node && q.Tail != node) && IsAlloc(node.alloc) && node.next == NULL_QUEUE_ITEM && (forall item: QueueItem :: { QueueItem_next[item] } item.next != node))
+simulate Atomic_48 var m:QueueItem;  if(*) { havoc m; assume ReachBetween(QueueItem_next, this.Tail, m, NULL_QUEUE_ITEM) && m != NULL_QUEUE_ITEM && m.next == NULL_QUEUE_ITEM; this.Tail := m; } else { m := this.Tail; } assert owner[node] == tid;         assert this.alloc == Alloc;         havoc guard_0, guard, n, tail, ex;         assert (forall q: NBQueue :: q.Head != node && q.Tail != node) && IsAlloc(node.alloc) && node.next == NULL_QUEUE_ITEM && (forall item: QueueItem :: { QueueItem_next[item] } item.next != node);         assume this.Tail.next == NULL_QUEUE_ITEM;         this.Tail.next := node;        assume ReachBetween(QueueItem_next, tail.next, node, NULL_QUEUE_ITEM);   owner[node] := 0;
+simulate Call_15 var z:QueueItem; assert node != NULL_QUEUE_ITEM && ReachBetween(QueueItem_next, tail.next, node, NULL_QUEUE_ITEM);         assert this.alloc == Alloc; havoc z; if (*)             {                 if (ReachBetween(QueueItem_next, this.Tail.next, z, NULL_QUEUE_ITEM) && z != NULL_QUEUE_ITEM)                 {                     this.Tail := z;                 }             } havoc guard;
+prover off
+simulate Atomic_62 var m:QueueItem; havoc m; if (*)         {             assume ReachBetween(QueueItem_next, this.Tail, m, NULL_QUEUE_ITEM) && m != NULL_QUEUE_ITEM && m != this.Head;             this.Tail := m;         }  else { m := this.Tail; } assert this.alloc == Alloc;         havoc guard_1, guard, head, tail, n, ex;         if (*)         {             assume this.Head.next != NULL_QUEUE_ITEM;             assume this.Head != this.Tail;             result := this.Head.next.value;             this.Head := this.Head.next;         }          return;
+prover on

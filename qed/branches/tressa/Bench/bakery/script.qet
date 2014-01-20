@@ -1,0 +1,6 @@
+reduce
+invariant N >= 1
+localinv Acquire (forall x : int :: {number[x]} (1 <= x && x <= N) ==> number[x] >= 0)
+
+reduce
+

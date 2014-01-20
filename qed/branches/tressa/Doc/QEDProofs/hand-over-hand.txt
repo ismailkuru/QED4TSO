@@ -1,0 +1,333 @@
+class Node {
+  Node next;
+  // val is immutable once the node is in the list  
+  int val; 
+}
+
+// head is immutable and points to a dummy entry
+Node head;
+
+method Init() {
+  // head is modified only in the constructor which is called
+  // before any concurrent accesses via Insert and Delete
+  head = new Node();
+}
+
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  p := head;
+  acquire p;
+  while (p.next != null && p.next.val < x) {
+    nx := p.next;
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  if (p.next == null || p.next.val > x) {
+    t := new Node;
+    t.val := x;
+    t.next := p.next;
+    p.next := t;
+    wasPresent := false;
+  } else {
+    wasPresent := true;
+  }
+  release p;
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p, nx: Node;
+  p := head;
+  acquire p;
+  while (p.next != null && p.next.val < x) {
+    nx := p.next;
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  if (p.next != null && p.next.val == x) {
+    nx := p.next;
+    acquire nx;
+    p.next := nx.next;
+    release nx;
+    wasPresent := true;
+  } else {
+    wasPresent := false;
+  }
+  release p;
+}
+
+----------------------------------------------------------------
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  p := head;
+  acquire p;
+  while (*) {
+    nx := p.next;
+    assume (nx != null && nx.val < x);
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  nx := p.next;
+  assume (nx == null || nx.val >= x);
+  if (*) {
+    assume (nx == null || nx.val > x);
+    t := new Node;
+    t.val := x;
+    t.next := nx;
+    p.next := t;
+    wasPresent := false;
+  } else {
+    assume (nx != null && nx.val <= x);
+    wasPresent := true;
+  }
+  release p;
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  p := head;
+  acquire p;
+  while (*) {
+    nx := p.next;
+    assume (nx != null && nx.val < x);
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  nx := p.next;
+  assume (nx == null || nx.val >= x);
+  if (*) {
+    assume (nx != null && nx.val == x);
+    acquire nx;
+    t := nx.next;
+    p.next := t;
+    release nx;
+    wasPresent := true;
+  } else {
+    assume (nx == null || nx.val != x);
+    wasPresent := false;
+  }
+  release p;
+}
+
+Initial invariant: head != null
+
+----------------------------------------------------------------
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  p := head;
+  acquire p;
+  while (*) {
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx != null && nx.val < x)];
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  [assert (p != null && held(p) && alloc(p)); nx := p.next];
+  [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+  if (*) {
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val > x)];
+    t := new Node;
+    t.val := x;
+    t.next := nx;
+    [assert (p != null && held(p) && alloc(p)); p.next := t];
+    wasPresent := false;
+  } else {
+    [assert alloc(nx); assume (nx != null && nx.val <= x)];
+    wasPresent := true;
+  }
+  release p;
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  p := head;
+  acquire p;
+  while (*) {
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx != null && nx.val < x)];
+    acquire nx;
+    release p;
+    p := nx;
+  }
+  [assert (p != null && held(p) && alloc(p)); nx := p.next];
+  [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+  if (*) {
+    [assert (nx == null || alloc(nx)); assume (nx != null && nx.val == x)];
+    acquire nx;
+    [assert (nx != null && held(nx) && alloc(nx)); t := nx.next];
+    [assert (p != null && held(p) && alloc(p)); p.next := t];
+    release nx;
+    wasPresent := true;
+  } else {
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val != x)];
+    wasPresent := false;
+  }
+  release p;
+}
+
+----------------------------------------------------------------
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  [
+    p := head;
+    acquire p;
+  ]
+  while (*) {
+    [
+      [assert (p != null && held(p) && alloc(p)); nx := p.next];
+      [assert (nx == null || alloc(nx)); assume (nx != null && nx.val < x)];
+      acquire nx;
+      release p;
+      p := nx;
+    ]
+  }
+  [
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+    if (*) {
+      [assert (nx == null || alloc(nx)); assume (nx == null || nx.val > x)];
+      t := new Node;
+      t.val := x;
+      t.next := nx;
+      [assert (p != null && held(p) && alloc(p)); p.next := t];
+      wasPresent := false;
+    } else {
+      [assert alloc(nx); assume (nx != null && nx.val <= x)];
+      wasPresent := true;
+    }
+    release p;
+  ]
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  [
+    p := head;
+    acquire p;
+  ]
+  while (*) {
+    [
+      [assert (p != null && held(p) && alloc(p)); nx := p.next];
+      [assert (nx == null || alloc(nx)); assume (nx != null && nx.val < x)];
+      acquire nx;
+      release p;
+      p := nx;
+    ]
+  }
+  [
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+    if (*) {
+      [assert (nx == null || alloc(nx)); assume (nx != null && nx.val == x)];
+      acquire nx;
+      [assert (nx != null && held(nx) && alloc(nx)); t := nx.next];
+      [assert (p != null && held(p) && alloc(p)); p.next := t];
+      release nx;
+      wasPresent := true;
+    } else {
+      [assert (nx == null || alloc(nx)); assume (nx == null || nx.val != x)];
+      wasPresent := false;
+    }
+    release p;
+  ]
+}
+
+Now introduce two invariants
+1. null \in Btwn_next(head, null)
+2. for all e \in Btwn_next(head, null)\{null}. alloc[e]
+
+-----------------------------------------------------------------
+The action 
+[
+  p := choose(Btwn_next(head, null)\{null}); 
+  assume (forall e \in Btwn_next(head.next, null)\Btwn_next(p.next, null). e.val < x); 
+  acquire(p)
+] 
+is a right mover.
+
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, nx, t: Node;
+  [
+    p := choose(Btwn_next(head, null)\{null}); 
+    assume (forall e \in Btwn_next(head.next, null)\Btwn_next(p.next, null). e.val < x); 
+    acquire(p);
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+    if (*) {
+      [assert (nx == null || alloc(nx)); assume (nx == null || nx.val > x)];
+      t := new Node;
+      t.val := x;
+      t.next := nx;
+      [assert (p != null && held(p) && alloc(p)); p.next := t];
+      wasPresent := false;
+    } else {
+      [assert alloc(nx); assume (nx != null && nx.val <= x)];
+      wasPresent := true;
+    }
+    release p;
+  ]
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p, nx: Node;
+  [
+    p := choose(Btwn_next(head, null)\{null}); 
+    assume (forall e \in Btwn_next(head.next, null)\Btwn_next(p.next, null). e.val < x); 
+    acquire(p);
+    [assert (p != null && held(p) && alloc(p)); nx := p.next];
+    [assert (nx == null || alloc(nx)); assume (nx == null || nx.val >= x)];
+    if (*) {
+      [assert (nx == null || alloc(nx)); assume (nx != null && nx.val == x)];
+      acquire nx;
+      [assert (nx != null && held(nx) && alloc(nx)); t := nx.next];
+      [assert (p != null && held(p) && alloc(p)); p.next := t];
+      release nx;
+      wasPresent := true;
+    } else {
+      [assert (nx == null || alloc(nx)); assume (nx == null || nx.val != x)];
+      wasPresent := false;
+    }
+    release p;
+  ]
+}
+
+Introduce the invariant:
+(forall e, f \in Btwn_next(head.next, null)\{null}. 
+	     	 	f \in Btwn_next(e, null) ==> e.val < f.val)
+
+-------------------------------------------------------------------
+method Insert(x: int) returns (wasPresent: bool) {
+  var p, t: Node;
+  [
+    if (forall e \in Btwn_next(head.next, null)\{null}. e.val != x) {
+      p := choose(Btwn_next(head, null)\{null}); 
+      assume (p == head || p.val < x) && (p.next == null || x < p.next.val);
+      t := new Node;
+      t.val := x;
+      t.next := p.next;
+      p.next := t;
+      wasPresent := false;
+    } else {
+      wasPresent := true;
+    }
+  ]
+}
+
+method Delete(x: int) returns (wasPresent: bool) {
+  var p: Node;
+  [
+    if (exists e \in Btwn_next(head.next, null)\{null}. e.val == x) {
+      p := choose(Btwn_next(head, null)\{null}); 
+      assume p.next != null && p.next.val == x;
+      p.next := p.next.next;
+      wasPresent := true;
+    } else {
+      wasPresent := false;
+    }
+  ]
+}
+

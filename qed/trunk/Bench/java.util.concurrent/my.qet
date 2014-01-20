@@ -1,0 +1,75 @@
+mover Atomic_14
+inline AQS_compareAndSetHead
+inline AQS_compareAndSetTail
+inline Node_Node
+mover proc AQS_enq
+merge proc AQS_enq
+mover proc AQS_enq
+hoist Atomic_14 after
+mover proc AQS_enq
+simulate Atomic_14 havoc t;
+mover proc AQS_enq
+mover proc AQS_enq
+merge proc AQS_enq
+mover Atomic_14
+inline Node_Node_2
+mover Atomic_14
+reduce proc Node_predecessor
+inline Node_predecessor
+mover Atomic_14
+assert Atomic_17 h.alloc == Alloc
+mover Atomic_14
+assert Atomic_18 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_23 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_150 t.alloc == Alloc
+mover Atomic_14
+assert Call_35 node.alloc == Alloc
+mover Atomic_14
+assert Call_37 node.alloc == Alloc
+assert Atomic_37 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_39 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_45 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_46 s != NULL_NODE ==> s.alloc == Alloc
+mover Atomic_14
+assert Atomic_50 t.alloc == Alloc
+mover Atomic_14
+assert Atomic_52 t.alloc == Alloc
+mover Atomic_14
+assert Atomic_57 h != NULL_NODE ==> h.alloc == Alloc
+mover Atomic_14
+assert Atomic_60 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_61 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_62 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_63 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_64 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_65 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_66 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_71 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_73 pred.alloc == Alloc
+mover Atomic_14
+assert Atomic_74 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_75 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_75 next.alloc == Alloc
+mover Atomic_14
+assert Atomic_78 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_84 node.alloc == Alloc
+assert Call_84 node.alloc == Alloc
+mover Atomic_14
+assert Atomic_99 pred.alloc == Alloc
+mover Atomic_14

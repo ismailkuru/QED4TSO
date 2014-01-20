@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?><ItemProperties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><Properties><Property><Name>svn:ignore</Name><Value>QED.Forms.dll
+QED.Forms.pdb
+QED.Lib.dll
+QED.Lib.pdb
+QED.exe
+QED.exe.config
+QED.pdb
+QED.vshost.exe
+QED.vshost.exe.config
+QED.vshost.exe.manifest
+QEDPLChecker.exe
+QEDPLChecker.pdb
+qet_debug.txt
+</Value></Property></Properties></ItemProperties>

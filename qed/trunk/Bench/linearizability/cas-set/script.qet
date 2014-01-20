@@ -1,0 +1,70 @@
+localinv find e==E
+localinv contains e==E
+
+inline all
+
+# always out
+splitinv (forall n: Node :: {n.key}{n.marked}{ReachBetweenSet(Node_next, Head, n)[n]} n.key == E ==> n.marked == True || !ReachBetweenSet(Node_next, Head, n)[n])
+
+reduce all
+
+# introduce all invariants
+include invariants.qet
+
+localinv contains (forall n: Node :: n.key == e && ReachBetweenSet(Node_next, curr, n)[n] ==> n.marked == True)
+
+simulate Atomic_7 \\
+	 snip := true; \\
+	 pred := Head; \\
+	 havoc curr; \\
+	 succ := null; \\
+	 assume ReachBetweenSet(Node_next, pred.next, Tail)[curr]; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, pred.next, curr)[n] && n != curr ==> n.marked == True);
+
+simulate Call_11 \\
+	 assert ReachBetweenSet(Node_next, curr, Tail)[curr]; \\
+	 havoc succ; \\
+	 assume ReachBetweenSet(Node_next, curr.next, succ)[succ]; \\
+	 assume curr.marked == True ==> curr.next == succ; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, curr.next, succ)[n] && n != succ ==> n.marked == True); \\
+	 marked := toBool(curr.marked);
+
+simulate Atomic_47 \\
+	 snip := true; \\
+	 pred := Head; \\
+	 havoc curr; \\
+	 succ := null; \\
+	 assume ReachBetweenSet(Node_next, pred.next, Tail)[curr]; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, pred.next, curr)[n] && n != curr ==> n.marked == True);
+
+simulate Call_51 \\
+	 assert ReachBetweenSet(Node_next, curr, Tail)[curr]; \\
+	 havoc succ; \\
+	 assume ReachBetweenSet(Node_next, curr.next, succ)[succ]; \\
+	 assume curr.marked == True ==> curr.next == succ; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, curr.next, succ)[n] && n != succ ==> n.marked == True); \\
+	 marked := toBool(curr.marked);
+
+simulate Atomic_12 \\
+	var x: Node; \\
+	assert (IsAlloc(succ.alloc) && ReachBetweenSet(Node_next, succ, Tail)[Tail]) || succ == null; \\
+	assert IsAlloc(curr.alloc) && ReachBetweenSet(Node_next, curr, Tail)[Tail]; \\
+	assert curr.marked == True && curr.next == succ; \\
+        if (*){   havoc x;\\
+                        assume ReachBetweenSet(Node_next, pred.next, x)[x] && pred.marked == toBoolean(false);\\
+                        assume (forall n: Node :: ReachBetweenSet(Node_next, pred.next, x)[n] && x != n ==> n.marked == True);\\
+                        pred.next := x;\\
+			havoc snip; \\
+                    } else { snip := false; }\\
+                    havoc x;
+simulate Atomic_68
+	 if (snip) { \\
+	 havoc curr; \\
+	 assume ReachBetweenSet(Node_next, pred.next, curr)[curr]; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, pred.next, curr)[n] && n != curr ==> n.marked == True);\\
+	 havoc succ; \\
+	 assume ReachBetweenSet(Node_next, curr.next, succ)[succ]; \\
+	 assume curr.marked == True ==> curr.next == succ; \\
+	 assume (forall n: Node :: ReachBetweenSet(Node_next, curr.next, succ)[n] && n != succ ==> n.marked == True); \\
+	 marked := toBool(curr.marked);\\
+	 }

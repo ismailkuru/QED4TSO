@@ -1,0 +1,46 @@
+var lock : [ref]int;
+var owner : [ref]int;
+const max : int;
+
+
+procedure {:check 1} acquire(obj : ref, thr : ref)
+	modifies lock;
+	ensures (old(owner)[obj] == thr || old(lock)[obj] == 0) &&
+		(owner[obj] == thr && lock[obj] == old(lock)[obj] + 1);
+{
+	assume owner[obj] == thr || lock[obj] == 0;
+	owner[obj] := thr;
+	lock[obj] := lock[obj] + 1;
+}
+
+procedure {:check 1} release(obj : ref, thr : ref)
+	requires owner[obj] == thr && lock[obj] > 0;
+	modifies lock;
+	ensures (lock[obj] == old(lock) - 1) && ((lock[obj] > 1 && owner[obj] == thr) || (lock[obj] == 0 && owner[obj] == null));
+{
+	lock[obj] := lock[obj] - 1;
+	if(lock[obj] == 0)
+	{
+		owner[obj] := null;
+	}
+}
+
+procedure {:check 1} wait(obj : ref, thr : ref)
+{
+	
+}
+
+procedure {:check 1} notify(obj : ref, thr : ref)
+{
+	
+}
+
+procedure {:check 1} notifyAll(obj : ref, thr : ref)
+{
+	
+}
+
+procedure {:check 1} waitResume(obj : ref, thr : ref)
+{
+	
+}

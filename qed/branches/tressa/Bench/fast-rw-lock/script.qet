@@ -1,0 +1,23 @@
+inline all
+reduce all
+assert proc writerUnlock I != null && I.alloc == True
+assert Atomic_16@writerUnlock I.next != null && I.next.alloc == True
+assert Atomic_17@writerUnlock I.next != null && I.next.alloc == True
+assert Atomic_10@writerLock pred.alloc == True && pred.next == null && I != null
+abstract read Lelem_next Atomic_12@writerUnlock
+reduce all
+split if Atomic_10@writerLock
+reduce all
+simulate Atomic_12@writerUnlock assert I != null && I.alloc == True;         if (*)         {             fresh_0 := L.elem == I;             if (fresh_0)             {                 L.elem := null; havoc guard_1, tmp, fresh_0, abst_Lelem_next_0; return;             }                     } havoc guard_1, tmp, fresh_0, abst_Lelem_next_0;
+aux intro owner [Lelem]int
+annotate Atomic_5@writerLock owner owner[I] := tid;
+assert Atomic_21@writerLock owner[I] == tid
+assert Atomic_12@writerUnlock owner[I] == tid
+annotate Atomic_15@writerUnlock owner[I] := 0;
+annotate Atomic_15@writerUnlock owner owner[I] := 0;
+aux remove owner
+invariant (forall L: Lelem :: L.alloc == False ==> owner[L] == 0)
+invariant (forall L: RWLock :: L.elem != null ==> L.elem.alloc == True)
+invariant (forall L1: RWLock, L2: RWLock :: L1.elem != null && L2.elem != null && L1 != L2 ==> L1.elem != L2.elem)
+invariant (forall L: RWLock :: L.elem != null ==> L.elem.next == null)
+reduce all

@@ -1,0 +1,21 @@
+simulate Atomic_14 assert n!=null && n.owner==tid && n.alloc==Alloc && p!=null && p.owner==tid && p.alloc==Alloc; p.next := n.next;
+simulate Atomic_14 assert n!=null && n.owner==tid && n.alloc==Alloc && p!=null && p.owner==tid && p.alloc==Alloc; p.next := n.next;
+simulate Atomic_14 assert n!=null && n.owner==tid && n.alloc==Alloc && p!=null && p.owner==tid && p.alloc==Alloc; p.next := n.next;
+reduce all
+inline all
+reduce all
+invariant (forall l : List :: ReachBetween(Node_next,l.head,null,null));
+invariant (forall l : List, e : Node :: ReachBetween(Node_next,l.head,e,null) ==> e.alloc==Alloc);
+check all block
+invariant (forall e: Node :: e.owner!=0 <==> e.lock==True);
+check all block
+simulate Atomic_5 assert p!=null && p.owner==tid && p.alloc==Alloc; assert p.next==null || (p.next).alloc==Alloc; assert p.owner==tid; assert p.lock==True;  havoc p; assume ReachBetween(Node_next,list.head,p,null) && p!=null; assume (forall e: Node :: ReachBetween(Node_next,list.head,e,p) ==> e.val<x);  assume p.owner==0; assume p.lock == False; p.owner:=tid; p.lock := True;
+mover Atomic_5
+invariant (forall e, f : Node, l : List :: ReachBetween(Node_next,l.head,e,e) && ReachBetween(Node_next,l.head,f,f) && e!=null && f!==null && ReachBetween(Node_next,f,e,e) ==> f.val<e.val);
+invariant (forall e, f : Node, l : List :: ReachBetween(Node_next,l.head,e,e) && ReachBetween(Node_next,l.head,f,f) && e!=null && f!==null && ReachBetween(Node_next,f,e,e) && e!=f ==> f.val<e.val);
+invariant (forall e : Node, f : Node, l : List :: ReachBetween(Node_next,l.head,e,e) && ReachBetween(Node_next,l.head,f,f) && e!=null && f!==null && ReachBetween(Node_next,f,e,e) && e!=f ==> f.val<e.val);
+invariant (forall e : Node, f : Node, l : List ::     ReachBetween(Node_next,l.head,e,e) &&     ReachBetween(Node_next,l.head,f,f) &&     e!=null &&     f!=null &&     ReachBetween(Node_next,f,e,e) &&     e!=f ==> f.val<e.val);
+invariant (forall e : Node, f : Node, l : List ::     ReachBetween(Node_next,l.head,e,e) &&     ReachBetween(Node_next,l.head,f,f) &&     e!=null &&     f!=null &&     ReachBetween(Node_next,f,e,e) &&     ==> f.val<e.val);
+invariant (forall e : Node, f : Node, l : List ::     ReachBetween(Node_next,l.head,e,e) &&     ReachBetween(Node_next,l.head,f,f) &&     e!=null &&     f!=null &&     ReachBetween(Node_next,f,e,e)     ==> f.val<e.val);
+invariant false;
+reduce loop Atomic_5@Delete 

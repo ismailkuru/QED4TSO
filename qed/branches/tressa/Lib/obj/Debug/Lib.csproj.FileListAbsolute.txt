@@ -1,0 +1,10 @@
+C:\Users\User\Desktop\qed-tressa\Bin\QED.Lib.dll
+C:\Users\User\Desktop\qed-tressa\Bin\QED.Lib.pdb
+C:\Users\User\Desktop\qed-tressa\Lib\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\User\Desktop\qed-tressa\Lib\obj\Debug\QED.Lib.dll
+C:\Users\User\Desktop\qed-tressa\Lib\obj\Debug\QED.Lib.pdb
+C:\Users\alisezgin\Desktop\qed-tressa\Lib\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\alisezgin\Desktop\qed-tressa\Bin\QED.Lib.dll
+C:\Users\alisezgin\Desktop\qed-tressa\Bin\QED.Lib.pdb
+C:\Users\alisezgin\Desktop\qed-tressa\Lib\obj\Debug\QED.Lib.dll
+C:\Users\alisezgin\Desktop\qed-tressa\Lib\obj\Debug\QED.Lib.pdb

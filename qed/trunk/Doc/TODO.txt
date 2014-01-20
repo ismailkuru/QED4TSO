@@ -1,0 +1,69 @@
+invariants to add
+invariant (forall n1: Node, n2: Node :: IsDealloc(n1.alloc) ==> n2.next != n1) && (forall n: Node :: !IsAlloc(n.alloc) ==> n.next == null)
+
+
+
+TODO:
+
+- labeling actions independent of qed
+- cheap noninterference analyses
+- use type for races and atomicity
+- abstraction seviyeleri
+- assertion seti
+- partition procedures, then introduce assert false for each partition
+- eran yahav abstraction yaparak atomicity bulmaya çalýþýyor, bunu incele
+- treiber's stack
+- resilient invariants with separation logic
+
+* mekanizmalar
+- thread locality
+- mutual exclusion
+- execution order between actions on conditions
+- mutual exclusion, events, conditional waiting etc.
+- structured parallelism'i private computation yap
+
+- determinism check
+
+- main procedure ve parallel çal??abilecek atomic blocklar? tespit et.
+
+- reduce loop 3
+
+- atomic blocklar? birle?tirmeden önce gotolar? kontrol et, blo?un ortas?na giri? olmayacak.
+
+- if ve while'daki starlar? yoketmek için proof command: star
+
+- assignment inference'i di?er refinement komutlar?na da ekle --  ama if ve whilelar nasil isaretlenecek?
+
+- reduce loop eger invariant'i preserve ederse ancak simulate hold etmez ise bazen reduce etmek istedigin seyi loop'un tepesine koyuyor ancak loop'u reduce etmiyor. Bu nedenle iki tane blok kaliyor en sonunda. Ayrica bu noktadan sonra genelde input stream corrupt oluyor (error null ad label null hatasi).
+
+- save, load and reload commands to clean discharged assertions
+
+- Atomic block icinde calll olursa (call etti?i proc. atomic oldugu halde) inline all exception firlatiyor.
+
+
+- --- Kivanc TODO --- Mover failure olunca, Z3'nin verdigi modeli kullanarak user'a hangi state'den baslayinca mover failure oldugunu gostermek. State re-construction.
+
+- - Eger programda tek satirlik call'dan olusan bir atomic blok var ise (ki program atomic diye adlandirmiyor onu :D), bu durumda o blok icin hicbir command calismiyor (assert, simulate vb.)
+
+- eger if in icerisinde bir atomic block var ise ve both mover ise (sadece mover olmasi da yetebilir) bunu merge dedikten sonra atomic kismi if in disina tasiyor ancak yeni bir atomic ad veriyor o bloga. Eger eski adinda kalabilirse cok iyi olur.
+
+- how to display model (errModel is always null for now)
+
+- implement the mover check in the popl paper
+
+- construct and use the conflict map
+
+- new config load edince bütün counterlar? s?f?rla
+
+- aux ve hide komutlar?n? fieldlar için de yap
+-- record. add Field and remove field methods
+
+- komutun tam cal?s?p cal?smad?g? b?ld?g?n? dondursun Run()
+
+- asserleri kirmizi, havoclari mavi yap
+
+- invariant force: add the inv as assertion at the end of the block
+
+- cleanup command to remove all comments and assert assume trues
+
+- simple hide to hide havoced variables at the end

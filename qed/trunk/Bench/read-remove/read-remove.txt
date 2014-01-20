@@ -1,0 +1,99 @@
+
+var w : bool;
+var c : int;
+var obj : ref;
+
+var lock : bool;
+
+procedure {:atomic 1} acquire()
+	modifies lock;
+	ensures (old(lock) == false) && (lock == true);
+{
+	assume lock == false;
+	lock := true;
+}
+
+procedure {:atomic 1} release()
+	requires lock == true;
+	modifies lock;
+	ensures lock == false;
+{
+	lock := false;
+}
+
+procedure {:check 1} ReadObj() returns (r : ref)
+	ensures r == obj && r != null;
+{
+	assume(obj != null);
+	r := obj;
+	return;
+}
+
+procedure {:check 1} AcqRead() returns (r : bool)
+{
+	call acquire();
+		if(w == false)
+		{
+			c := c + 1;
+			r := true;
+		} else { 
+			r := false;
+		}
+	call release()
+	return;
+}
+	
+procedure {:check 1} RelRead()
+{
+	call acquire();
+		c := c - 1;
+	call release();
+}
+
+procedure {:check 1} AcqRemove() returns (r : bool)
+{	
+	call acquire();
+		if(c == 0)
+		{
+			w := true;
+			r := true;
+		} else {
+			r := false;
+		}
+	call release();
+	return;
+}
+
+
+procedure {:check 1} ReadEntry() returns (r : ref, s : bool)
+	ensures (s == false) || (s == true && r != null && r == obj)
+{
+	var held : bool;
+	
+	call held := AcqRead();
+	if(held)
+	{
+		call r := ReadObj();	
+		s := true;
+	} else {
+		r := null;	
+		s := false;
+	}
+	call RelRead();
+	return;
+}
+
+
+procedure {:check 1} DeleteEntry()
+	ensures obj == null;
+{
+	var held : bool;
+	
+	call held := AcqRemove();
+	while(!held)
+	{
+		call held := AcqRemove();
+	}
+	obj := null;
+	return;
+}

@@ -1,0 +1,38 @@
+reduce all
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant tail != null ==> tail.next == null
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant tail == null <==> wlock == 0
+invariant (forall elem: Lelem :: elem.alloc == True ==> elem.owned != 0)
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant tail == null <==> wlock == 0
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant tail != null ==> tail.owned == wlock
+invariant tail.next == null
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant (forall elem1: Lelem, elem2: Lelem :: elem1 == elem2 ==> elem1.next == elem2.next)
+invariant tail != null ==> tail.alloc == True
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant tail.next == null
+invariant (forall elem: Lelem :: elem.alloc == False ==> !ReachBetween(Lelem_next, elem, tail, tail))
+invariant (forall elem: Lelem :: elem.alloc == False && tail != null ==> !ReachBetween(Lelem_next, elem, tail, tail))
+invariant (forall elem: Lelem :: elem.alloc == False ==> elem.next == null)
+invariant (forall elem: Lelem :: elem.alloc == False && tail != null ==> !ReachBetween(Lelem_next, elem, tail, tail))
+invariant (forall elem: Lelem :: elem.alloc == False && ReachBetween(Lelem_next, elem, tail, tail) ==> tail == null)
+invariant tail != null ==> (forall elem: Lelem :: elem.alloc == False ==> !ReachBetween(Lelem_next, elem, tail, tail))
+invariant (forall elem: Lelem :: elem != null ==> !ReachBetween(Lelem_next, null, elem, elem))
+invariant (forall elem: Lelem :: elem.alloc == False && tail != null ==> !ReachBetween(Lelem_next, elem, tail, tail))
+invariant false
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant (forall elem: Lelem :: tail != null && ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail || elem.next == null)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: elem1.alloc == False && ReachBetween(Lelem_next, elem2, elem1, elem1) ==> elem2 == elem1)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem1: Lelem, elem2: Lelem :: elem1.alloc == True && elem2.alloc == True && owner[elem1] != 0 && owner[elem2] != 0 && ReachBetween(Lelem_next, elem1, tail, tail) && ReachBetween(Lelem_next, elem2, tail, tail) ==> elem1 == elem2)
+invariant (forall elem: Lelem :: ReachAvoiding(Lelem_next, elem, null, tail) ==> elem == tail)

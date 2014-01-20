@@ -1,0 +1,15 @@
+aux intro lockedBy 
+simulate Call_129 assert !monitorException;         assert true;         dummy := this.state == 0;         if (dummy)         { assert lockedBy[this] == 0;             assert this.exclusiveOwnerThread == NULL_THREAD;             this.state := 1; lockedBy[this] := tid;         }
+aux remove lockedBy
+mover Call_130
+hoist Call_129 after
+merge proc NonfairSync_lock
+simulate Call_129 assert !monitorException;             dummy := this.state == 0;             assume dummy;                 assert lockedBy[this] == 0;                 assert this.exclusiveOwnerThread == NULL_THREAD;                 this.state := 1;                 lockedBy[this] := tid;             havoc currentThread;             this.exclusiveOwnerThread := Threads[tid];
+invariant (forall queue: NonfairSync :: lockedBy[queue] == tid <==> queue.exclusiveOwnerThread == Threads[tid])
+invariant (forall queue: NonfairSync :: lockedBy[queue] == 0 <==> queue.state == 0)
+invariant (forall queue: NonfairSync :: lockedBy[queue] == 0 <==> queue.exclusiveOwnerThread == NULL_THREAD)
+check all block
+simulate Call_129_else assert !monitorException;             dummy := this.state == 0;             assume !dummy;
+invariant (forall queue: NonfairSync :: lockedBy[queue] == tid <==> queue.state > 0)
+check all block
+mover proc Sync_nonfairTryAcquire

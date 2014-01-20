@@ -1,0 +1,138 @@
+inline all
+mover Call_4
+merge proc Thread_interrupted
+inline Thread_interrupted
+aux intro con [Node]boolean
+assert Atomic_6 con[this] == False
+simulate Atomic_10 this.waitStatus := NO_WAIT_STATUS; con[this] := True;
+simulate Atomic_23 node := New Node; con[node] := False;
+simulate Call_32 assert true;             fresh_0 := this.tail;             if (fresh_0 == NULL_NODE)             {                 fresh_1 := New Node;                 assume fresh_1 != NULL_NODE;                 fresh_1.prev := NULL_NODE;                 fresh_1.next := NULL_NODE;                 fresh_1.nextWaiter := NULL_NODE;                 fresh_1.thread := NULL_THREAD;                 fresh_1.waitStatus := NO_WAIT_STATUS; con[fresh_1] := True;                 fresh_1.next := node;                 node.prev := fresh_1;                 this.head := fresh_1;                 this.tail := node;                 dummyNode := fresh_1;             }             else             {                 node.prev := fresh_0;                 this.tail := node;                 fresh_0.next := node;                 dummyNode := fresh_0;             }
+aux remove con
+aux intro owner [Node]int
+simulate Atomic_23 node := New Node;         con[node] := False;  owner[node] := tid;
+simulate Call_32 assert true;             fresh_0 := this.tail;             if (fresh_0 == NULL_NODE)             {                 fresh_1 := New Node; owner[fresh_1] := tid;                  assume fresh_1 != NULL_NODE;                 fresh_1.prev := NULL_NODE;                 fresh_1.next := NULL_NODE;                 fresh_1.nextWaiter := NULL_NODE;                 fresh_1.thread := NULL_THREAD;                 fresh_1.waitStatus := NO_WAIT_STATUS;                 con[fresh_1] := True;                 fresh_1.next := node;                 node.prev := fresh_1;                 this.head := fresh_1;                 this.tail := node;                 dummyNode := fresh_1;             }             else             {                 node.prev := fresh_0;                 this.tail := node;                 fresh_0.next := node;                 dummyNode := fresh_0;             }
+aux remove owner
+assert Atomic_6 this.alloc == Alloc
+assert Atomic_6 owner[this] == tid
+mover Atomic_6
+merge proc Node_Node_2
+assert Atomic_19 con[node] == True
+assert Atomic_49 con[node] == True
+assert Atomic_63 con[pred] == True
+mover Atomic_6
+merge proc Node_Node_2
+assert Atomic_29 con[pred] == True
+simulate Call_32 assert true;             fresh_0 := this.tail;             if (fresh_0 == NULL_NODE)             {                 fresh_1 := New Node;                 owner[fresh_1] := tid;                 assume fresh_1 != NULL_NODE;                 fresh_1.prev := NULL_NODE;                 fresh_1.next := NULL_NODE;                 fresh_1.nextWaiter := NULL_NODE;                 fresh_1.thread := NULL_THREAD;                 fresh_1.waitStatus := NO_WAIT_STATUS;                 con[fresh_1] := True;                 fresh_1.next := node;                 node.prev := fresh_1;                 this.head := fresh_1;                 this.tail := node;                 dummyNode := fresh_1;             }             else             { assert con[fresh_0] == True;                 node.prev := fresh_0;                 this.tail := node;                 fresh_0.next := node;                 dummyNode := fresh_0;             }
+assert Atomic_35 con[node] == True
+assert Atomic_55 con[pred] == True
+assert Call_59 con[pred] == True
+assert Atomic_64 con[node] == True
+assert Call_66 con[pred] == True
+assert Atomic_68 con[node] == True
+assert Atomic_98 con[pred_dup] == True
+mover Atomic_6
+merge proc Node_Node_2
+assert Atomic_11 con[this] == True
+assert Atomic_27 con[node] == True
+assert Call_32 con[node] == True
+assert Atomic_42 con[t] == True
+assert Atomic_50 con[node] == True
+assert Atomic_52 con[pred] == True
+assert Atomic_53 con[node] == True
+assert Atomic_92 con[pred_dup] == True
+assert Atomic_93 con[node] == True
+assert Atomic_95 con[pred_dup] == True
+assert Atomic_96 con[node] == True
+mover Atomic_6
+merge proc Node_Node_2
+inline Node_Node_2
+mover Atomic_12
+merge proc Node_predecessor
+mover Atomic_143
+merge proc Node_predecessor
+inline Node_predecessor
+mover Call_102
+merge proc AQS_selfInterrupt
+inline AQS_selfInterrupt
+mover Atomic_117
+mover Call_118
+mover Atomic_124
+mover Atomic_125
+mover Atomic_127
+mover Atomic_122
+merge proc Sync_nonfairTryAcquire
+merge proc Sync_nonfairTryAcquire
+mover Atomic_109
+mover Call_110
+mover Atomic_112
+mover Atomic_113
+mover Atomic_114
+merge proc Sync_tryRelease
+aux intro lockedBy [NonfairSync]int
+simulate Call_120 assert true;             dummy := this.state == 0;             if (dummy)             { assert lockedBy[this] == 0;                 this.state := acquires; lockedBy[this] := tid;             }
+simulate Atomic_144 if (dummy)             { assert lockedBy[this] == tid;                 assert true;                 this.exclusiveOwnerThread := current;                 result := true;             }
+simulate Atomic_146 if (current == ownerThread)             { assert lockedBy[this] == tid;                 nextc := c + acquires;                 if (nextc < 0)                 {                     throw Error;                 }                 else                 {                     assert true;                     this.state := nextc;                     result := true;                 }             }
+mover Atomic_147
+merge proc Sync_tryRelease
+simulate Call_110 assert true;          currentThread := Threads[tid];           assert true;          ownerThread := this.exclusiveOwnerThread;           if (currentThread != ownerThread)         {               throw IllegalMonitorStateException;          }  assert lockedBy[this] == tid;         result := false;
+assert Atomic_148 lockedBy[this] == tid
+simulate Call_116 assert lockedBy[this] == tid; assert true;         this.state := c; if (this.state == 0) { lockedBy[this] := 0; }
+assert Call_108 releases == 1
+assert Atomic_146 acquires == 1
+simulate Call_108 assert (Threads[tid] == this.exclusiveOwnerThread) <==>  lockedBy[this]  == tid; assert releases == 1;         assert true;         c := this.state;          c := c - releases;
+aux intro monitorException [NonfairSync]boolean
+simulate Call_129 assert monitorException[this] == False;         assert true;         dummy := this.state == 0;         if (dummy)         {  assert lockedBy[this] == 0; assert this.exclusiveOwnerThread == NULL_THREAD;             this.state := 1;         lockedBy[this] := tid;  }
+assert Call_131 monitorException[this] == False && this.exclusiveOwnerThread == NULL_THREAD
+aux remove lockedBy
+simulate Call_116 assert lockedBy[this] == tid;         assert true;         this.state := c;         if (this.state == 0)         { assert this.exclusiveOwnerThread == NULL_THREAD;             lockedBy[this] := 0;         } else { assert this.exclusiveOwnerThread == Threads[tid]; }
+assert Call_108 Threads[tid] == this.exclusiveOwnerThread <==> monitorException[this] == False
+simulate Call_110 assert true;         currentThread := Threads[tid];         assert true;         ownerThread := this.exclusiveOwnerThread;         if (currentThread != ownerThread)         { assert monitorException[this] == True;             throw IllegalMonitorStateException;         }          assert lockedBy[this] == tid;         result := false; assert monitorException[this] == False;
+assert Atomic_148 monitorException[this] == False
+assert Call_116 monitorException[this] == False
+aux remove monitorException
+simulate Call_120 assert true;             dummy := this.state == 0;             if (dummy)             { assert this.exclusiveOwnerThread == NULL_THREAD;                 assert lockedBy[this] == 0;                 this.state := acquires;                 lockedBy[this] := tid;             }
+assert Call_120 monitorException[this] == False
+assert Atomic_146 monitorException[this] == False
+assert Atomic_144 monitorException[this] == False
+mover Call_108
+merge proc Sync_tryRelease
+mover Call_108
+merge proc Sync_tryRelease
+assert Call_123 monitorException[this] == False
+mover Call_130
+merge proc NonfairSync_lock
+assert Call_120 acquires == 1
+assert Call_130 lockedBy[this] == tid
+simulate Call_108 assert releases == 1;         c := this.state;         c := c - 1;         havoc currentThread;         havoc ownerThread;         if (Threads[tid] != this.exclusiveOwnerThread)         { assert lockedBy[this] != tid;             assert monitorException[this] == True;             throw IllegalMonitorStateException;         }  assert this.exclusiveOwnerThread == Threads[tid];         assert lockedBy[this] == tid;         result := false;         assert monitorException[this] == False;         if (c == 0)         {             result := true;             this.exclusiveOwnerThread := NULL_THREAD;         }
+simulate Atomic_146 assert monitorException[this] == False;             assert acquires == 1; if (current == ownerThread)             { assert this.exclusiveOwnerThread == Threads[tid]; assert c == this.state; assert this.state > 0;                 assert lockedBy[this] == tid;                 havoc nextc;                 if (this.state + 1 < 0)                 {                     throw Error;                 }                 else                 {                     this.state := this.state + 1;                     result := true;                 }             }
+simulate Atomic_117 result := false;         current := Threads[tid]; if (this.state == 0 || lockedBy[this] == tid) {         c := this.state; } else { havoc c; }
+mover Atomic_146
+merge proc Sync_nonfairTryAcquire
+simulate Call_123 assert monitorException[this] == False; assert current == Threads[tid];             havoc ownerThread;             assert acquires == 1;             if (Threads[tid] == this.exclusiveOwnerThread)             {                 assert c == this.state;                 assert this.state > 0;                 assert lockedBy[this] == tid;                 havoc nextc;                 if (this.state + 1 < 0)                 {                     throw Error;                 }                 else                 {                     this.state := this.state + 1;                     result := true;                 }             }
+mover Call_108
+merge proc Sync_tryRelease
+simulate Call_108 assert releases == 1;         havoc c;         havoc currentThread;         havoc ownerThread;         if (Threads[tid] != this.exclusiveOwnerThread)         {             assert lockedBy[this] != tid;             assert monitorException[this] == True;             throw IllegalMonitorStateException;         }          assert this.exclusiveOwnerThread == Threads[tid];         assert lockedBy[this] == tid;         result := false;         assert monitorException[this] == False; this.state := this.state - 1;         if (this.state == 0)         {             result := true;             this.exclusiveOwnerThread := NULL_THREAD;             lockedBy[this] := 0;         }
+simulate Atomic_144 assert monitorException[this] == False;  if (dummy)             { assert this.exclusiveOwnerThread == NULL_THREAD;                 assert lockedBy[this] == tid;                 assert true;                 this.exclusiveOwnerThread := current;                 result := true;             }
+mover Atomic_144
+merge proc Sync_nonfairTryAcquire
+simulate Atomic_178 assert acquires == 1;             assert monitorException[this] == False; if (c == 0)         {             havoc dummy;             if (this.state == 0)             {                 assert this.exclusiveOwnerThread == NULL_THREAD;                 assert lockedBy[this] == 0;                 this.state := 1;                 lockedBy[this] := tid;                 this.exclusiveOwnerThread := current;                 result := true;             }         }         else         {             assert current == Threads[tid];             havoc ownerThread;             if (Threads[tid] == this.exclusiveOwnerThread)             {                 assert c == this.state;                 assert this.state > 0;                 assert lockedBy[this] == tid;                 havoc nextc;                 if (this.state + 1 < 0)                 {                     throw Error;                 }                 else                 {                     this.state := this.state + 1;                     result := true;                 }             }         }
+hoist Call_129 after
+mover Call_130
+merge proc NonfairSync_lock
+simulate Atomic_165 assert acquires == 1;         assert monitorException[this] == False; assert current == Threads[tid];         if (c == 0)         {             havoc dummy;             if (this.state == 0)             {                 assert this.exclusiveOwnerThread == NULL_THREAD;                 assert lockedBy[this] == 0;                 this.state := 1;                 lockedBy[this] := tid;                 this.exclusiveOwnerThread := Threads[tid];                 result := true;             }         }         else         {             havoc ownerThread;             if (Threads[tid] == this.exclusiveOwnerThread)             {                 assert c == this.state;                 assert this.state > 0;                 assert lockedBy[this] == tid;                 havoc nextc;                 if (this.state + 1 < 0)                 {                     throw Error;                 }                 else                 {                     this.state := this.state + 1;                     result := true;                 }             }         }
+invariant (forall queue: NonfairSync :: monitorException[queue] == False && lockedBy[queue] == tid ==> queue.exclusiveOwnerThread == Threads[tid])
+invariant (forall queue: NonfairSync :: lockedBy[queue] == 0 <==> queue.exclusiveOwnerThread == NULL_THREAD)
+invariant (forall queue: NonfairSync :: lockedBy[queue] == 0 <==> queue.state == 0)
+invariant (forall queue: NonfairSync :: lockedBy[queue] != 0 <==> queue.state > 0)
+invariant (forall queue: NonfairSync :: monitorException[queue] == False && queue.exclusiveOwnerThread == Threads[tid] ==> lockedBy[queue] == tid)
+invariant (forall queue: NonfairSync :: monitorException[queue] == True ==> lockedBy[queue] != tid)
+check all block
+simulate Call_129 assert monitorException[this] == False; havoc dummy; assume this.state == 0;                 this.state := 1;                 lockedBy[this] := tid;             havoc currentThread;             this.exclusiveOwnerThread := Threads[tid];
+simulate Call_129_else assert monitorException[this] == False; havoc dummy; assume this.state != 0;
+mover proc Sync_nonfairTryAcquire
+simulate Call_108 assert releases == 1;         havoc c;         havoc currentThread;         havoc ownerThread;         if (Threads[tid] != this.exclusiveOwnerThread)         {             assert monitorException[this] == True;             throw IllegalMonitorStateException;         }  assert monitorException[this] == False;         result := false;         this.state := this.state - 1;         if (this.state == 0)         {             result := true;             this.exclusiveOwnerThread := NULL_THREAD;             lockedBy[this] := 0;         }
+mover Call_69
+mover Call_70
+merge proc AQS_parkAndCheckInterrupt
+merge proc AQS_parkAndCheckInterrupt
+inline AQS_parkAndCheckInterrupt

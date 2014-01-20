@@ -1,0 +1,59 @@
+
+inline all
+
+assert Call_46 tid == ThreadX
+
+assert Call_47 tid == ThreadX
+
+assert Call_48 tid == ThreadX
+
+assert Call_49 tid == ThreadX
+assert Call_49 Mem[addrX] == 1
+
+assert Atomic_50 Mem[addrX] == 1
+assert Atomic_50 tid == ThreadX
+
+
+assert Call_51 Mem[addrX]==1; 
+assert Call_51 tempY == 0;  
+assert Call_51 Mem[addrY] == tempY;
+assert Call_51 tid == ThreadX
+
+assert Call_52 Mem[addrX]==1; 
+assert Call_52 tempY == 0;  
+assert Call_52 Mem[addrY] == tempY;
+assert Call_52 tid == ThreadX
+
+
+
+
+
+
+
+assert Call_54 tid == ThreadY
+
+assert Call_55 tid == ThreadY
+
+assert Call_56 tid == ThreadY
+
+assert Call_57 Mem[addrY] == 1
+assert Call_57 tid == ThreadY
+
+assert Atomic_58 Mem[addrY] == 1
+assert Atomic_58 tid == ThreadY
+
+assert Call_59 Mem[addrY]==1; 
+assert Call_59 tempX == 0;  
+assert Call_59 Mem[addrX] == tempX;
+assert Call_59 tid == ThreadY
+
+assert Call_60 Mem[addrY]==1; 
+assert Call_60 tempX == 0;  
+assert Call_60 Mem[addrX] == tempX;
+assert Call_60 tid == ThreadY
+
+
+reduce all
+check all
+
+

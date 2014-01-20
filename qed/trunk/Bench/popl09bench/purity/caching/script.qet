@@ -1,0 +1,17 @@
+refine mutex auxLock lock == true
+reduce all
+invariant flag == FULL || flag == INIT || flag == EMPTY
+invariant FULL != INIT && INIT != EMPTY && EMPTY != FULL
+reduce all
+abstract r flag Read_anon0@0
+refine mutex auxInit flag == INIT
+reduce all
+reduce all
+refine mutex auxFull flag == FULL
+reduce all
+invariant flag == FULL ==> obj != null
+invariant flag == EMPTY ==> obj == null
+invariant flag == INIT ==> obj != null
+check Read
+post proc Read (stt == INIT && ret == null) || (stt == FULL && ret == obj)
+reduce proc Read

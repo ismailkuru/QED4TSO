@@ -1,0 +1,137 @@
+record Node {
+data: int;
+next: Node;
+alloc: AllocType;
+owner: TID;
+}
+
+const unique null: Node;
+
+invariant IsNull(null.alloc);
+
+var TOP: Node;
+
+const unique EMPTY: int;
+
+procedure {:isatomic} CAS(oldVal: Node, newVal: Node) returns (r: bool);
+
+
+
+implementation CAS(oldVal: Node, newVal: Node) returns (r: bool)
+{
+  var ex: Exception;
+
+  Atomic_1:
+    atomic  {  // Non-mover
+        r := TOP == oldVal;
+        if (r)
+        {
+            TOP := newVal;
+        }
+    }
+}
+
+
+
+procedure push(v: int);
+  modifies Node_alloc, Node_data, Node_next;
+
+
+
+implementation push(v: int)
+{
+  var t: Node;
+  var x: Node;
+  var g: bool;
+  var ex: Exception;
+
+  Atomic_2:
+    atomic  {  // Non-mover
+        x := New Node;
+    }
+
+  Atomic_3:
+    atomic  {  // Non-mover
+        x.data := v;
+    }
+
+    while (true)
+    {
+      Atomic_4:
+        atomic  {  // Non-mover
+            t := TOP;
+        }
+
+      Atomic_5:
+        atomic  {  // Non-mover
+            x.next := t;
+        }
+
+      Call_6:
+          call g := CAS(t, x);
+
+        if (g)
+        {
+          Atomic_7:
+            atomic  {  // Non-mover
+                break;
+            }
+        }
+    }
+}
+
+
+
+procedure pop() returns (v: int);
+
+
+
+implementation pop() returns (v: int)
+{
+  var t: Node;
+  var x: Node;
+  var g: bool;
+  var ex: Exception;
+
+    while (true)
+    {
+      Atomic_8:
+        atomic  {  // Non-mover
+            t := TOP;
+        }
+
+        if (t == null)
+        {
+          Atomic_9:
+            atomic  {  // Non-mover
+                v := EMPTY;
+            }
+
+          Atomic_10:
+            atomic  {  // Non-mover
+                return;
+            }
+        }
+
+      Atomic_11:
+        atomic  {  // Non-mover
+            x := t.next;
+        }
+
+      Call_12:
+          call g := CAS(t, x);
+
+        if (g)
+        {
+          Atomic_13:
+            atomic  {  // Non-mover
+                break;
+            }
+        }
+    }
+
+  Atomic_14:
+    atomic  {  // Non-mover
+        v := t.data;
+    }
+}

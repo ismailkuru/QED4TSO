@@ -1,0 +1,17 @@
+inline all
+reduce all
+simulate Call_5@Enq var qb:int; i := q.back; havoc qb; assume qb > i; q.back := qb;
+reduce all
+peelout Call_10@Deq
+reduce all
+simulate Call_10@Deq assume i <= range; assume q.items[i] == null; i := i + 1; havoc x;
+assert Call_6 q.items[i] == null
+assert Call_6 x != null
+simulate Atomic_23 if (i <= range)             {                 x := q.items[i];                 q.items[i] := null;                  assume (x != null); havoc i; return; }
+invariant (forall q: queue :: q.back >= 1)
+simulate Call_7 havoc range; assume range >= 0; i := 1;
+aux intro owner [queue,int]int
+annotate Call_5 owner owner[q,i] := tid;
+assert Call_6 owner[q, i] == tid
+aux remove owner
+invariant (forall q: queue :: owner[q, q.back] == 0)

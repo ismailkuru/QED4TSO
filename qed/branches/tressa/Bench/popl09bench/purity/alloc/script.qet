@@ -1,0 +1,13 @@
+aux a [int]int
+post loop alloc_anon5_LoopHead a == old(a)
+post loop alloc_anon5_LoopHead lock == old(lock)
+refine pointer a (forall x: int :: lock[x] == true)
+clone alloc_anon5_LoopBody@1 alloc_anon6_Then
+clone alloc_anon5_LoopBody alloc_anon5_LoopBody@1
+abstractpath r i alloc_anon5_LoopBody@0
+reduce all
+fixmover r alloc_anon5_LoopBody
+fixmover r alloc_anon6_Then
+fixmover r alloc_anon6_Then@1
+fixmover l alloc_anon6_Then@2
+reduce all

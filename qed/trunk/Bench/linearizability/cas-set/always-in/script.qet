@@ -1,0 +1,89 @@
+localinv find e==E
+localinv contains e==E
+
+inline all
+
+# always in
+splitinv (exists n: Node :: {n.key}{n.marked}{ReachBetweenSet(Node_next, Head, Tail)[n]} n.key == E && n.marked == False && ReachBetweenSet(Node_next, Head, Tail)[n])
+
+reduce all
+
+# introduce all invariants
+include invariants.qet
+
+assert Atomic_51 curr.key < e ==> succ != null
+localinv contains (exists n: Node :: n.key == E && n.marked == False && ReachBetweenSet(Node_next, curr, Tail)[n] && ReachBetweenSet(Node_next, pred.next, Tail)[n] && (succ != null && (curr.key != E || curr.marked == True) ==> ReachBetweenSet(Node_next, succ, Tail)[n]))
+
+assert Atomic_11 curr.key < e ==> succ != null
+localinv find (exists n: Node :: n.key == E && n.marked == False && ReachBetweenSet(Node_next, curr, Tail)[n] && ReachBetweenSet(Node_next, pred.next, Tail)[n] && (succ != null && (curr.key != E || curr.marked == True) ==> ReachBetweenSet(Node_next, succ, Tail)[n]))
+
+simulate Atomic_4 \\
+	 pred := Head; \\
+	 havoc curr; \\
+	 assume ReachBetweenSet(Node_next, pred.next, Tail)[curr]; \\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, pred.next, curr)[n]}{n.marked} ReachBetweenSet(Node_next, pred.next, curr)[n] && n != curr ==> n.marked == True);\\
+	 succ := null;
+
+simulate Call_7 \\
+	 assert ReachBetweenSet(Node_next, curr, Tail)[curr]; \\
+	 havoc succ; \\
+	 assume ReachBetweenSet(Node_next, curr.next, succ)[succ]; \\
+	 assume curr.marked == True ==> curr.next == succ; \\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, pred.next, curr)[n]}{n.marked} ReachBetweenSet(Node_next, curr.next, succ)[n] && n != succ ==> n.marked == True); \\
+	 marked := toBool(curr.marked);
+
+simulate Atomic_44 \\
+	 pred := Head; \\
+	 havoc curr; \\
+	 assume ReachBetweenSet(Node_next, pred.next, Tail)[curr]; \\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, pred.next, curr)[n]}{n.marked} ReachBetweenSet(Node_next, pred.next, curr)[n] && n != curr ==> n.marked == True);\\
+	 succ := null;
+
+simulate Call_47 \\
+	 assert ReachBetweenSet(Node_next, curr, Tail)[curr]; \\
+	 havoc succ; \\
+	 assume ReachBetweenSet(Node_next, curr.next, succ)[succ]; \\
+	 assume curr.marked == True ==> curr.next == succ; \\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, curr.next, succ)[n]}{n.marked} ReachBetweenSet(Node_next, curr.next, succ)[n] && n != succ ==> n.marked == True); \\
+	 marked := toBool(curr.marked);
+
+simulate Atomic_8 \\
+	 assert IsAlloc(pred.alloc) && ReachBetweenSet(Node_next, pred, Tail)[Tail];\\
+	 assert IsAlloc(succ.alloc) && ReachBetweenSet(Node_next, succ, Tail)[Tail];\\
+	 assert IsAlloc(curr.alloc) && ReachBetweenSet(Node_next, curr, Tail)[Tail];\\
+	 assert curr.marked == True && curr.next == succ;\\
+	 assume pred.marked == False;\\
+	 havoc curr;\\
+	 assume ReachBetweenSet(Node_next, pred.next, curr)[curr]; \\
+	 assume IsAlloc(curr.alloc) && ReachBetweenSet(Node_next, curr, Tail)[Tail];\\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, pred.next, curr)[n]}{n.marked} ReachBetweenSet(Node_next, pred.next, curr)[n] && curr != n ==> n.marked == True);\\
+	 pred.next := curr;\\
+         succ := curr.next;\\
+         marked := toBool(curr.marked);\\
+	 havoc snip;\\
+	 assert !marked && curr.key >= e ==> curr.key == e;
+
+simulate Atomic_48 \\
+	 assert IsAlloc(pred.alloc) && ReachBetweenSet(Node_next, pred, Tail)[Tail];\\
+	 assert IsAlloc(succ.alloc) && ReachBetweenSet(Node_next, succ, Tail)[Tail];\\
+	 assert IsAlloc(curr.alloc) && ReachBetweenSet(Node_next, curr, Tail)[Tail];\\
+	 assert curr.marked == True && curr.next == succ;\\
+	 assume pred.marked == False;\\
+	 havoc curr;\\
+	 assume ReachBetweenSet(Node_next, pred.next, curr)[curr]; \\
+	 assume IsAlloc(curr.alloc) && ReachBetweenSet(Node_next, curr, Tail)[Tail];\\
+	 assume (forall n: Node :: {ReachBetweenSet(Node_next, pred.next, curr)[n]}{n.marked} ReachBetweenSet(Node_next, pred.next, curr)[n] && curr != n ==> n.marked == True);\\
+	 pred.next := curr;\\
+         succ := curr.next;\\
+         marked := toBool(curr.marked);\\
+	 havoc snip;\\
+	 assert !marked && curr.key >= e ==> curr.key == e;
+
+
+peelout Atomic_8
+merge proc find
+peelout Atomic_48
+merge proc contains
+check find
+check contains
+

@@ -1,0 +1,36 @@
+
+var lock : [int]bool;
+var counter : [ref]int;
+var container : [ref]ref;
+
+procedure {:atomic 1} acquire(i : int)
+	modifies lock;
+	ensures (old(lock[i]) == false) && (lock[i] == true);
+{
+	assume lock[i] == false;
+	lock[i] := true;
+}
+
+procedure {:atomic 1} release(i : int)
+	requires lock[i] == true;
+	modifies lock;
+	ensures lock[i] == false;
+{
+	lock[i] := false;
+}
+
+procedure {:check 1} run(obj)
+{
+	while(true) {
+		call acquire(i);
+		counter[obj] := counter[obj] + 1;
+		call release(i);
+	}
+}
+
+procedure {:check 1} main()
+{
+	while(true) {
+		
+	}
+}

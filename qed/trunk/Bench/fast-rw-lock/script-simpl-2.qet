@@ -1,0 +1,20 @@
+invariant tail != null ==> tail.next == null
+mover all
+mover all
+mover all
+reduce all
+check all
+invariant tail == null <==> wlock == 0
+invariant tail == null <==> wlock == 0
+invariant tail == null <==> wlock == 0
+invariant (forall elem: Lelem :: elem.alloc == True ==> elem.owned != 0)
+invariant tail == null <==> wlock == 0
+check all
+invariant tail != null ==> tail.owned == wlock
+invariant tail.next == null
+invariant (forall elem1: Lelem, elem2: Lelem :: elem1 == elem2 ==> elem1.next == elem2.next)
+invariant tail != null ==> tail.alloc == True
+invariant tail.next == null
+check all
+invariant (forall elem: Lelem :: ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)
+invariant (forall elem: Lelem :: elem.alloc == True && ReachBetween(Lelem_next, elem, tail, tail) ==> elem == tail)

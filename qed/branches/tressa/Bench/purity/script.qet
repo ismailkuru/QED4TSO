@@ -1,0 +1,2 @@
+reduce
+refine pointer auxLock (forall x: int :: lock[x] == true)

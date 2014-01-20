@@ -1,0 +1,56 @@
+inline all
+reduce all
+invariant (forall cv: CV, rw: RW :: rw.syncRoot == cv.m)
+aux intro owner [Object]int
+simulate Atomic_5 cv := this.wq; assume this.syncRoot.lock == False;         this.syncRoot.lock := True; owner[this.syncRoot] := tid;         temp := this.writeWaiters;          temp := temp + 1;
+simulate Atomic_9 assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0; this.writeWaiters := temp;         guard := true;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_12 assert cv == this.wq; assume this.syncRoot.lock == False;             this.syncRoot.lock := True; owner[this.syncRoot] := tid;              guard := this.i != 0;
+simulate Atomic_51 if (!guard)             {                 throw ExBreak;             }              assert cv.m.lock == True;             cv.m.lock := False;
+assert Atomic_18 owner[this.syncRoot] == tid
+assert Atomic_20 owner[this.syncRoot] == tid
+simulate Atomic_21 assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0; this.i := 0 - 1;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_23 assume this.syncRoot.lock == False;         this.syncRoot.lock := True; owner[this.syncRoot] := tid;         temp := this.readWaiters;
+assert Atomic_25 owner[this.syncRoot] == tid
+assert Atomic_27 owner[this.syncRoot] == tid
+split if Call_28
+simulate Call_28 assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0; assert this.syncRoot.lock == True;             this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_29 assume this.syncRoot.lock == False;             this.syncRoot.lock := True; owner[this.syncRoot] := tid;
+simulate Atomic_30 assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0;  guard := true;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_32 assume this.syncRoot.lock == False;             this.syncRoot.lock := True; owner[this.syncRoot] := tid;             guard := this.i < 0;              if (!guard)             {                 throw ExBreak;             }  assert owner[this.syncRoot] == 0 || owner[this.syncRoot] == tid;             assert this.syncRoot.lock == True;             this.syncRoot.lock := False;
+assert Atomic_36 owner[this.syncRoot] == tid
+assert Atomic_38 owner[this.syncRoot] == tid
+assert Atomic_39 owner[this.syncRoot] == tid
+simulate Atomic_41 assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0; this.i := temp;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_46 assert true;         assume this.syncRoot.lock == False; this.i := this.i - 1; havoc temp;         this.syncRoot.lock := False;
+simulate Atomic_51 assert cv == this.wq; if (!guard)             {                 throw ExBreak;             }  assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0;             assert this.syncRoot.lock == True;             this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+simulate Call_32 assume this.syncRoot.lock == False;             this.syncRoot.lock := True;             owner[this.syncRoot] := tid;             guard := this.i < 0;             if (!guard)             {                 throw ExBreak;             }              assert owner[this.syncRoot] == 0 || owner[this.syncRoot] == tid;             assert this.syncRoot.lock == True;             this.syncRoot.lock := False; owner[this.syncRoot] := 0;
+aux remove owner
+invariant (forall obj: Object :: obj.lock == False ==> owner[obj] == 0)
+reduce all
+simulate Atomic_5 cv := this.wq;         assume this.syncRoot.lock == False; this.writeWaiters := this.writeWaiters + 1; havoc temp;         guard := true;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+simulate Atomic_18 assert owner[this.syncRoot] == tid; this.writeWaiters := this.writeWaiters - 1; havoc temp;         this.i := 0 - 1;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+simulate Call_23 assume this.syncRoot.lock == False;         this.syncRoot.lock := True;         owner[this.syncRoot] := tid; this.readWaiters := this.readWaiters + 1; havoc temp;         havoc guard;          if (guard)         {             this.syncRoot.lock := False;             owner[this.syncRoot] := 0;         }
+simulate Atomic_36 assert owner[this.syncRoot] == tid; this.readWaiters := this.readWaiters - 1; this.i := this.i + 1; havoc temp;         assert this.syncRoot.lock == True;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+peelout Call_12
+simulate Call_12 assert cv == this.wq; assume guard;
+mover Call_12
+reduce loop Call_12 if (*) { assert cv == this.wq;             assume guard;  }
+reduce proc RW_acquireWriterLock
+simulate Atomic_64 assert guard == true; assert cv == this.wq;                 assume this.syncRoot.lock == False;                 this.syncRoot.lock := True;                 owner[this.syncRoot] := tid; guard := false; assume this.i == 0;         this.writeWaiters := this.writeWaiters - 1;         havoc temp;         this.i := 0 - 1;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+simulate Atomic_5 cv := this.wq;         this.writeWaiters := this.writeWaiters + 1;         havoc temp;         guard := true;
+reduce proc RW_acquireWriterLock
+check all block
+simulate Atomic_5 assume this.syncRoot.lock == False;         this.syncRoot.lock := True;         owner[this.syncRoot] := tid;          cv := this.wq;         havoc temp;          assume this.i == 0;  guard := false; this.i := 0 - 1;          havoc temp;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+peelout Call_32
+simulate Call_32 assume guard;
+reduce loop Call_32 if (*) { assume guard; }
+reduce proc RW_acquireReaderLock
+simulate Atomic_78 assert guard == true; assume this.syncRoot.lock == False;                 this.syncRoot.lock := True;                 owner[this.syncRoot] := tid; assume this.i >= 0; guard := false;         this.readWaiters := this.readWaiters - 1;         this.i := this.i + 1;         havoc temp;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0;
+simulate Call_23 this.readWaiters := this.readWaiters + 1;         havoc temp;         havoc guard;         if (!guard)         {             assume this.syncRoot.lock == False;             this.syncRoot.lock := True;             owner[this.syncRoot] := tid;         }
+simulate Atomic_54 if (!guard) {  assert owner[this.syncRoot] == tid || owner[this.syncRoot] == 0;          assert this.syncRoot.lock == True;         this.syncRoot.lock := False;         owner[this.syncRoot] := 0; } guard := true;
+reduce proc RW_acquireReaderLock
+check all block
+simulate Call_23 assume this.i >= 0; this.i := this.i + 1; havoc temp; guard := false;
+simulate Call_43 this.i := 0;
+simulate Call_46 this.i := this.i - 1; havoc temp;
+simulate Atomic_5 assume this.i == 0; this.i := -1; cv := this.wq; havoc temp; guard := false;

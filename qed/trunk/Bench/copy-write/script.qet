@@ -1,0 +1,3 @@
+simulate Atomic_1 havoc version; assume version <= fr.ver; havoc value; assume (version == fr.ver) ==> (value == fr.val);
+reduce all
+simulate Atomic_1 havoc version, value; if(*) { to.val := fr.val; to.ver := to.ver + 1; }

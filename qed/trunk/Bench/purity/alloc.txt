@@ -1,0 +1,45 @@
+
+var free : [int]bool;
+var lock : [int]bool;
+var max : int;
+
+procedure {:atomic 1} acquire(i : int)
+	modifies lock;
+	ensures (old(lock[i]) == false) && (lock[i] == true);
+{
+	assume lock[i] == false;
+	lock[i] := true;
+}
+
+procedure {:atomic 1} release(i : int)
+	requires lock[i] == true;
+	modifies lock;
+	ensures lock[i] == false;
+{
+	lock[i] := false;
+}
+
+procedure {:check 1} alloc() returns (r : int)
+	modifies lock, free;
+	ensures (r == -1) || (r != -1 && free[i]);
+{
+	var i;
+	
+	i := 0;
+	r := -1;
+	
+	while(i < max)
+	{
+		call acquire(i);
+		if(free[i])
+		{
+			free[i] := false;
+			call release(i);
+			r := i;
+			break;		
+		}
+		call release(i);
+		i := i + 1;
+	}
+	return r;
+}

@@ -1,0 +1,3 @@
+inline singleDrain
+assert Call_48 Mem[addrFlag] == 0
+assert Call_48 ThreadWriteBuffers[tid].tail == ThreadWriteBuffers[tid].head

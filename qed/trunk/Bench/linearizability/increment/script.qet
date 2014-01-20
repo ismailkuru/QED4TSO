@@ -1,0 +1,19 @@
+reduce all
+peelout Atomic_2
+simulate Atomic_2 assume last >= 0;                 assume timeSeq[last] <= time;                 myx := Hx[timeSeq[last]];                 last := last + 1;                 t := myx;                 k := t + 1;                 assume last >= 0;                 assume timeSeq[last] == time;                 myx := Hx[timeSeq[last]];                 last := last + 1;                 assume myx != t;
+reduce loop Atomic_2 if(*){ havoc last; assume last >= 0; havoc myx, t, k; }
+simulate Atomic_2_dup assume last >= 0;                 assume timeSeq[last] <= time;                                                   t := Hx[timeSeq[last]]; last := last + 1;                                 assume timeSeq[last] == time;                                                   assume Hx[timeSeq[last]] == t; last := last + 1;                     time := time + 1;                     Hx[time] := t+1; havoc myx, k;
+mover Atomic_1
+merge all
+mover Atomic_1
+merge all
+simulate Atomic_1 havoc timeSeq;         assume (forall i: int :: { timeSeq[i] } timeSeq[i] <= timeSeq[i + 1]);             havoc last;             assume last >= 0;             assume timeSeq[last-1] == time;             assume Hx[timeSeq[last-1]] == Hx[timeSeq[last-2]];             time := time + 1;             Hx[time] := Hx[timeSeq[last-2]] + 1;             havoc myx, t, k;
+aux begin x int
+annotate Atomic_1 x x:= x + 1;
+aux end x
+invariant Hx[time] == x
+hide begin Hx
+hide begin time
+simulate Atomic_1 x := x + 1; havoc myx, t, k, timeSeq, last;
+hide end Hx
+hide end time

@@ -1,0 +1,191 @@
+
+Params: List, head, Node, next, null
+
+record List
+{
+	head: Node;
+	* tail: Node;
+}
+
+record Node
+{
+	next: Node;
+}
+
+const unique null: Node;
+
+// head not null
+invariant (forall list: List :: IsAlloc(list.head.alloc));
+invariant (forall list: List :: IsAlloc(list.tail.alloc));
+
+// connected to null
+invariant (forall list: List :: ReachBetween(Node_next, list.head, null, null));
+// if tail exists:
+invariant (forall list: List :: ReachBetween(Node_next, list.head, list.tail, null));
+
+// all nodes up to null are allocated
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, node, null) && node != null ==> IsAlloc(node.alloc));
+// if tail exists:
+invariant (forall list: List, node: Node :: ReachBetween(Node_next, list.head, list.tail, list.tail) ==> IsAlloc(node.alloc));
+
+// all non-alloc nodes point to null
+invariant (forall node: Node :: !IsAlloc(node.alloc) ==> node.next == null);
+
+// nobody points to dealloc nodes
+invariant (forall node1,node2: Node :: IsDealloc(node1.alloc) ==> node2.next != node1);
+
+// lists are disjoint
+invariant (forall list1,list2: List, node: Node :: IsAlloc(node.alloc) && list1 != list2 && ReachBetween(QueueItem_next, list1.Head, node, node) ==> !ReachBetween(QueueItem_next, list2.Head, node, node));
+// if tail exists: no need for extra invariant
+
+// unique successor
+invariant (forall L1,L2:Lelem:: IsAlloc(L1.alloc) && IsAlloc(L2.alloc) && L1.next == L2.next ==> L1 == L2);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// owner field for marking thread local objects
+Params: Node
+
+aux intro owner [Node]int
+annotate Block owner  owner[node] := tid;
+invariant (forall node: Node :: !IsAlloc(node.alloc) ==> owner[node] == 0);
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type State;
+
+const unique READER: State;
+
+const unique WRITER: State;
+
+const unique ACTIVE_READER: State;
+
+axiom (forall s: State :: s == READER || s == WRITER || s == ACTIVE_READER);
+
+const unique null: Lelem;
+
+invariant IsNull(null.alloc) && (forall l: Lelem :: IsNull(l.alloc) <==> l == null);
+
+var L: Lelem;
+
+record Lelem {
+  state: State;
+  spin: int;
+  next: Lelem;
+  prev: Lelem;
+  EL: boolean;
+}
+
+var wlock: Lelem;
+
+var rlock: [Lelem]boolean;
+
+
+// spin is 1 or 0
+invariant (forall L: Lelem :: L.spin == 1 || L.spin == 0)
+
+// non-alloc nodes point to null
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> L.next == null && L.prev == null);
+
+// L is alloc or null
+invariant IsAlloc(L.alloc) || IsNull(L.alloc);
+
+// L points to null
+invariant L.next == null;
+
+// read lock for non-alloc nodes are false
+invariant (forall L: Lelem :: !IsAlloc(L.alloc) ==> rlock[L] == False);
+
+// if L is null then wlock is null and all rlock are false
+invariant L == null ==> wlock == null && (forall I: Lelem :: rlock[I] == False);
+
+// if rlock is true for some node, then wlock is null (contrapositive: if wlock is not null, all rlock are false)
+invariant (exists I: Lelem :: rlock[I] == True) ==> wlock == null;
+
+// unique successor: implies that lists are disjoint
+invariant (forall I1,I2: Lelem :: IsAlloc(I1.alloc) && IsAlloc(I2.alloc) && I1.next == I2.next ==> I1 == I2);
+
+// nobody can reach dealloc
+invariant (forall K: Lelem, L: Lelem :: IsDealloc(K.alloc) ==> L.next != K);
+
+// every alloc node leads to null
+invariant (forall L: Lelem :: IsAlloc(L.alloc) ==> ReachBetween(Lelem_next, L, null, null));
+
+// if wlock is not null, wlock reaches null through L
+invariant wlock != null ==> ReachBetween(Lelem_next, wlock, L, null);
+
+// if L is not wlock and writer, and between wlock and null, its spin is 1
+invariant (forall I: Lelem :: wlock != null && IsAlloc(I.alloc) && I.state == WRITER && ReachBetween(Lelem_next, wlock, I, null) && I != wlock ==> I.spin == 1)
+
+// lists are disjoint
+invariant (forall I1: Lelem, I2: Lelem, I3: Lelem :: IsAlloc(I1.alloc) && I1 != I2 && I1 != I3 && I2 != I3 && ReachBetween(Lelem_next, I2, I1, null) && ReachBetween(Lelem_next, I3, I1, null) ==> ReachBetween(Lelem_next, I2, I3, I3) || ReachBetween(Lelem_next, I3, I2, I2))
+
+// deprecated invariants
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && ReachBetween(Lelem_next, wlock, l, L) && l != wlock ==> acq[l] == True)
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && ReachBetween(Lelem_next, l, wlock, wlock) && l != wlock ==> acq[l] == False) && (forall l: Lelem :: L != null && IsAlloc(l.alloc) && !ReachBetween(Lelem_next, l, L, null) ==> acq[l] == False)
+invariant (forall l: Lelem :: IsAlloc(l.alloc) && acq[l] == True && l.spin == 0 ==> l == wlock)
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+synch-queue invariants
+
+record QNode
+{
+	next: QNode;
+	item: Data;
+	waiter: Thread;
+	isData: boolean;
+}
+
+record TransferQueue
+{
+	head: QNode;
+	tail: QNode;
+	cleanMe: QNode;
+}
+
+const unique nulln: QNode;
+
+// head not null
+invariant (forall Q: TransferQueue :: IsAlloc(Q.head.alloc));
+invariant (forall Q: TransferQueue :: IsAlloc(Q.tail.alloc));
+
+// connected to null
+invariant (forall Q: TransferQueue :: ReachBetween(QNode_next, Q.head, Q.tail, null));
+
+// all nodes up to null are allocated
+invariant (forall Q: QNode, I: QNode :: ReachBetween(QNode_next, Q.head, I, null) && I != null ==> IsAlloc(I.alloc));
+// this implies that tail is alloc
+invariant (forall Q: QNode, I: QNode :: ReachBetween(QNode_next, Q.head, I, Q.tail) ==> IsAlloc(I.alloc));
+
+// when node.item == toData(node), then node.item does not change
+
+
+// when node.next == node, then node.next does not change
+
+
+// every alloc node reached nulln or itself
+(forall I: QNode :: IsAlloc(I.alloc) ==> ReachBetween(QNode_next, I, nulln, nulln) || I.next == I);
+
+// non-alloc nodes point to null
+invariant (forall I: QNode :: !IsAlloc(I.alloc) ==> I.next == nulln);
+
+// unique successor
+invariant (forall I: QNode :: IsDealloc(I.alloc) ==> (forall K: Lelem :: K.next != L));
+
+// nobody can reach dealloc
+invariant (forall I1,I2: QNode :: IsDealloc(I1.alloc) ==> I2.next != I1);
+
+// unique successor
+invariant (forall I1,I2: QNode :: IsAlloc(I1.alloc) && IsAlloc(I2.alloc) && I1.next == I2.next ==> I1 == I2);
+
+// lists are disjoint
+invariant (forall Q1,Q2: TransferQueue, I: QNode :: IsAlloc(I.alloc) && Q1 != Q2 && ReachBetween(QNode_next, Q1.head, I, I) ==> !ReachBetween(QNode_next, Q2.head, I, I));

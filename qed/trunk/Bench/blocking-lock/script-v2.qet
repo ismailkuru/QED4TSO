@@ -1,0 +1,13 @@
+inline all
+reduce all
+simulate Atomic_3@lock assume true;
+simulate Atomic_4@lock assume true;
+reduce all
+peelout Call_3@lock
+simulate Call_3@lock assume old_val == True; old_val := l.held; l.held := True; havoc fresh_0;
+reduce all
+simulate Atomic_11@lock if (old_val == True) { old_val := l.held; havoc fresh_0; l.held := True; assume false; }
+reduce loop Call_3@lock if (*) { assume old_val == True;             old_val := l.held;             l.held := True;             havoc fresh_0;  }
+reduce all
+simulate Atomic_2@lock old_val := False;              old_val := l.held;             l.held := True;             havoc fresh_0;        assume old_val == False;
+simulate Atomic_2@lock old_val := True; old_val := l.held; havoc fresh_0; l.held := True; assume old_val == False;

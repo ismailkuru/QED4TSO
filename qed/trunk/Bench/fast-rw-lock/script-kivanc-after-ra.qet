@@ -1,0 +1,40 @@
+assert Atomic_13@readerLock pred != null && pred.alloc == True
+assert Atomic_16@readerLock n != null && n.alloc == True
+assert Atomic_18@readerLock I != null && I.alloc == True
+mover Atomic_5@readerLock
+merge all
+assert Atomic_39@readerLock n != null && n.alloc == True
+assert Atomic_35@readerUnlock I.next != null && I.next.alloc == True
+mover Atomic_5@readerLock
+merge all
+assert Atomic_12@readerLock pred != null && pred.alloc == True
+assert Call_23@readerUnlock p != null && p.alloc == True
+assert Atomic_28@readerUnlock p != null && p.alloc == True
+assert Atomic_28@readerUnlock I != null && I.alloc == True
+assert Atomic_35@readerUnlock I != null && I.alloc == True
+assert Atomic_15@readerLock I != null && I.alloc == True
+assert Atomic_19@readerUnlock I != null && I.alloc == True
+mover Atomic_5@readerLock
+merge all
+assert Atomic_11@readerLock I != null && I.alloc == True
+assert Atomic_27@readerUnlock I != null && I.alloc == True
+assert Atomic_27@readerUnlock n != null && n.alloc == True
+assert Atomic_36@readerUnlock I != null && I.alloc == True
+assert Call_21@readerUnlock I != null && I.alloc == True
+assert Call_25@readerUnlock I != null && I.alloc == True
+mover Atomic_5@readerLock
+merge all
+assert Call_21@readerUnlock p != null && p.alloc == True
+assert Call_23@readerUnlock I != null && I.alloc == True
+assert Call_32@readerUnlock I != null && I.alloc == True
+invariant null.next == null && null.prev == null && null.alloc == False && null.EL == False && null.spin == 0
+aux intro creator [Lelem]int
+simulate Atomic_5@readerLock I := New Lelem;         I.state := READER;          I.spin := 1;          I.next := null;          I.prev := null;          pred := L.elem;         L.elem := I; creator[I] := tid;
+aux remove creator
+invariant (forall elem: Lelem :: elem.alloc == False ==> creator[elem] == 0)
+assert stmt Atomic_11@readerLock creator[I] == tid
+assert Atomic_15@readerLock creator[I] == tid
+assert stmt Atomic_16@readerLock creator[I] == tid
+assert Atomic_18@readerLock creator[I] == tid
+assert proc readerUnlock creator[I] == tid
+reduce all

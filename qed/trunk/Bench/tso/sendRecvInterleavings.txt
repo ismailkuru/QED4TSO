@@ -1,0 +1,77 @@
+send -- recv proof 
+
+// Her bir interleaving icin assert tid == recvThread | senderThread  hangi thread'in fonksiyonu calistirdigi bilgi her atomic block icinde aktariliyor.
+// her adresin o andaki ownerlarini tutan bir map kullandim. ownerMap[int]TID
+
+// Send icin yaziyorum Recv icin de durum ayni
+
+
+procedure {:ispublic false} send(addrFlag:int , addrX:int , sentvalue:int){
+
+	var flagLocal:int;
+	
+	//Burada senderThread == tid assumption'nini yapiyoruz
+	assume senderThread == tid;
+	
+	
+	call flagLocal := read(addrFlag);
+		
+	assume flagLocal == 0;
+	
+	//Bu interleaving'de bu assertion discharge edilmeli
+	// tid == senderThread
+	// flagLocal == 0 ==> ownerFlag[addrFlag] == senderThread && Mem[addrFlag] == 0 (addrFlag in sahibi senderThread ve Mem[addrFlag] == 0 (recv Flush etmis))
+	//                    ownerFlag[addrX] senderThread (Buna gerek te yok aslinda)                   
+	
+	// Burada ayrica artik addrX in ve addrFlag in ownershipinin senderThread'e gectigini assumption'inini yapiyoruz.
+	// Ozet: buraya geldiysek artik Mem'deki addrFlag degeri 0 olmali, bu olduysa hayli hayli addrX flush edilmistir.
+	
+	call absdrain(addrFlag, addrX);
+	
+	//Bu interleaving'de bu assertion discharge edilmeli
+	// tid = recvThread
+	// flagLocal == 0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+    // Ozet: Yukarida daha gevsek olan predicate artik kuvvetlendi, not implies but short circuit. Bir islem yok yazma ile ilgili buffer hala bos bundan dolayi yukaridaki state'i
+				 ifade eden predicate den farkli bir durumumuz yok.
+	
+	call write(addrX,sentvalue);
+	
+	// NOTHING CHANGED
+	//flagLocal==0 && ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && Mem[addrFlag] == 0
+
+	
+	call absdrain(addrFlag, addrX);
+	//Burda da bir degisiklik yok aslinda her ne kadar 
+	// Buffer bos olma durumu ile ilgili bir assertion yazabilirim ama bir gerek yok gibi geldi, sizce ? Cunku addrX in durumu ile ilgili bir assertion'a burada ihtiyacimiz yok
+	
+	call write(addrFlag,1);
+	// Ayni
+	
+	call absdrain(addrFlag, addrX);
+	//Burada su assertionlar discharge edilmeli
+	//assert Mem[addrFlag] == 0 ==> ownerMap[addrFlag] == senderThread && ownerMap[addrX] == senderThread && flagLocal==0
+    //assert Mem[addrFlag] == 1 ==> ownerMap[addrFlag] == recvThread && ownerMap[addrX] == recvThread && Mem[addrX] == sentvalue
+    // Ozet: Memory nin update olma durumuna gore ownershipleri degistiriyoruz
+	// addrFlag in flush olmamis addrX in flush olma durumu bizim icin ozel bir durum degil. Nedeni de su ki diger thread okumasini anca bu thread addrFlag degerini flush ettiginde 
+	// yapiyor.
+}
+
+procedure {:ispublic false} recieve(addrFlag:int, addrX:int) returns(result :int){
+
+	var flagLocal:int;
+	assume recvThread == tid
+	
+	
+	call flagLocal := read(addrFlag);
+	
+	assume flagLocal == 1;
+	
+	
+
+	
+	call absdrain(addrFlag, addrX);
+	call result := read(addrX);
+	call absdrain(addrFlag, addrX);
+	call write(addrFlag , 0);
+	call absdrain(addrFlag, addrX);
+}

@@ -1,0 +1,53 @@
+FindRoute(p1, p2) {
+  trasaction {
+
+
+    localGridSnapshot = globalGrid;
+
+    // Local computation
+    onePath = shortest_path(p1, p2, localGridSnapshot);
+
+    // insert onePath into global grid,
+    // abort if onePath overlaps an existing path
+    gridAddPathIfOK(globalGridPtr, pathsList, onePath);
+
+    // Postcondition: onePath \in pathsList && IsValidPath(onePath)
+    //                                      && IsConnectingPath(onePath,p1, p2)
+  }
+}
+
+FindRoute(p1, p2) {
+  transaction {
+    // Assume method pre-condition
+    _(assume gridInvariant(globalGrid) && pathsListInvariant(pathsList))
+
+    localGridSnapshot = globalGrid; //Snapshot read
+
+
+    onePath = shortest_path(p1, p2, localGridSnapshot);
+    // shortest_path does not modify its arguments
+
+    // Summary of call to shortest_path
+    havoc onePath;
+    _(assert IsConnectingPath(p1, p2) &&
+             IsValidPath(onePath) &&
+             NoOverlap(localGridSnapshot, onePath))
+
+
+    // Summary of gridAddPathIfOK(globalGridPtr, pathsList, onePath);
+    // All of the write accesses happen atomically.
+    for each i, j, k
+        assume globalGridPtr[i,j,k] != \empty;
+        if (i,j,k) \on onePath
+               globalGrid[i,j,k] = onePath.ID;
+    pathsList = pathsList.add(onePath);
+
+
+    // Assert desired invariants and method post-condition
+    _(assert gridInvariant(globalGrid) && pathsListInvariant(pathsList)
+    _(assert onePath \in pathsList && IsValidPath(onePath)
+                                          && IsConnectingPath(onePath,p1, p2)
+
+
+  }
+}

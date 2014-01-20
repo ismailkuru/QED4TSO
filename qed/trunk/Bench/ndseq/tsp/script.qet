@@ -1,0 +1,4 @@
+inline set_add_
+inline set_remove_
+inline set_pickone_
+checksafe main

@@ -1,0 +1,29 @@
+inline all
+reduce all
+peelout Call_2
+simulate Call_2 havoc guard_0; assume i < N; i := i + 1;
+simulate Atomic_1 havoc i; assume 0 <= i && i <= N; havoc guard_0;
+reduce loop2 Atomic_1
+reduce proc FindSlot
+simulate Atomic_1 havoc i,guard_0; havoc r; if(*) { r := -1; } else { assume (0 <= r && r < N && M[r].elt == null);    M[r].elt := x;  }
+inline FindSlot
+assert Call_12 x != null
+assert Atomic_56 x != null
+assert Call_21 x != null
+assert Call_21 y != null
+assert Call_24 x != null
+assert Call_24 y != null
+assert Atomic_58 x != null
+assert Atomic_58 y != null
+assert Atomic_58 M[i].elt == x && M[i].vld == False
+invariant (forall j: int :: 0 <= j && j < N && M[j].elt == null ==> M[j].vld == False)
+reduce all
+check all block
+peelout Call_42
+simulate Call_42 assume i < N; i := i + 1; havoc guard_1;
+simulate Atomic_41 havoc i; assume 0 <= i && i <= N; havoc guard_1;
+reduce loop2 Atomic_41
+reduce proc Delete
+simulate Call_12 assert x != null;         havoc i, fresh_0, fresh_1;         if (*)         {             r := false;         }         else         {             assume 0 <= i && i < N;             assume M[i].elt == null;             assume M[i].vld == False;             M[i].elt := x;             M[i].vld := True;             r := true;         }
+simulate Call_21 assert x != null && y != null;         havoc i, j, fresh_0, fresh_1, fresh_2, fresh_3;         if (*)         {             r := false;         }         else         {             assume 0 <= i && i < N;             assume 0 <= j && j < N;             assume M[i].elt == null;             assume M[i].vld == False;             M[i].elt := x;             M[i].vld := True;             assume M[j].elt == null;             assume M[j].vld == False;             M[j].elt := y;             M[j].vld := True;             r := true;         }
+simulate Atomic_41 havoc i, guard_1;    if(*) {      r := false;    } else {      assume 0 <= i && i < N;      assume M[i].elt == x;      assume M[i].vld == True;      M[i].elt:=null; M[i].vld:=False;      r := true;    }

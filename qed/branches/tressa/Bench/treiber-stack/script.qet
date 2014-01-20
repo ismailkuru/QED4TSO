@@ -1,0 +1,24 @@
+inline all
+nullcheck
+reduce all
+invariant (forall n1: Node, n2: Node :: IsDealloc(n1.alloc) ==> n2.next != n1) && (forall n: Node :: !IsAlloc(n.alloc) ==> n.next == null)
+assert Atomic_5 t == null || IsAlloc(t.alloc)
+invariant (forall n1: Node, n2: Node :: IsDealloc(n1.alloc) ==> n2.next != n1) && (forall n: Node :: !IsAlloc(n.alloc) ==> n.next == null)
+aux begin owner [Node]int
+annotate Atomic_2 owner owner[x] := tid;
+assert Atomic_5 owner[x] == tid
+assert Call_6 owner[x] == tid
+annotate Call_6 owner owner[x] := 0;
+assert Atomic_11 owner[t] == 0
+assert Call_12 owner[x] == 0
+aux end owner
+invariant (forall n: Node :: !IsAlloc(n.alloc) ==> owner[n] == 0)
+assert Call_12 x == null || IsAlloc(x.alloc)
+invariant owner[TOP] == 0 && (TOP == null || IsAlloc(TOP.alloc))
+simulate Atomic_4 havoc t; assume t == null || IsAlloc(t.alloc);
+reduce all
+check all block
+simulate Atomic_8 t := TOP;             if (t == null)             {                 v := EMPTY;                 return;             } havoc t; assume IsAlloc(t.alloc) && owner[t] == 0;             x := t.next;
+reduce all
+peelout Atomic_4
+simulate Atomic_4 havoc t;                 assume t == null || IsAlloc(t.alloc);                  assert owner[x] == tid;                 assert x.alloc == Alloc;                 x.next := t;                  assert owner[x] == tid;                 havoc g;                 owner[x] := 0;

@@ -1,0 +1,76 @@
+
+addaux auxname vartype
+hideaux auxname
+
+mutex auxname predicate
+stable auxname predicate
+progress auxnamelist predicatelist
+rwlock auxnamer auxnamew predicatelist
+mutexptr auxname predicate
+
+sync mutex auxname varnames predicate
+
+addproph varname
+trap gactlabel predicate
+conspar startgact endgactt varname predicate
+
+reduce all
+reduce proc procname
+reduce loop blocklabel
+
+mover (all|gactlabel)
+fixmover rl gactlabel
+
+merge [*]
+
+assert gactlabel predicate
+relax (all|gactlabel)
+
+annotate gactlabel predicate 
+deannotate gactlabel
+
+instrument entry predicatelist
+instrument exit predicatelist
+
+speculate predicatelist
+
+pre (loop|proc) (blocklabel|procname) predicate
+post (loop|proc) (blocklabel|procname) predicate
+
+mtype procname (R|L|B|N)
+
+invariant predicate
+localinv procname predicate
+transinv predicate
+
+reach procname
+
+clone gactlabel gactlabel
+
+purify 
+
+thrlocal procname varname
+
+eval classname
+
+abstract rw varname gactlabel
+abstractpath rw varname gactlabel
+
+config section key value
+
+
+TODO:
+
+simulate gactlabel gactlabel
+auxannotate varname predicate
+pushasserts
+popasserts
+annot pre procname predicate
+annot post procname predicate
+annot inv blocklabel predicate
+annot mover procname 
+abstract read varname gactlabel
+abstract write varname gactlabel
+check procname
+reduce stmt
+inline procname

@@ -1,0 +1,25 @@
+reduce all
+invariant (forall t: TID :: 1 <= t && t <= Tid ==> number[t] >= 0)
+invariant (forall t: TID :: 1 <= t && t <= Tid ==> choosing[t] == false)
+simulate Atomic_16 havoc j; assume 1 <= j && j <= Tid+1; assume (forall t:TID :: 1<= t && t < j && t != tid ==> number[t] == 0 || number[t] > number[tid] || (number[t] == number[tid] && t > tid));
+peelout Atomic_15
+reduce all
+simulate Atomic_15 assume j <= Tid;                 if (j != tid)                 {                     assume choosing[j] <==> false;                     assume number[j] == 0 || number[j] > number[tid] || (number[j] == number[tid] && j > tid);                 }                  j := j + 1;
+simulate Atomic_21 assume j > Tid;                     counter := counter + 1;
+reduce loop2 Atomic_16
+reduce all
+assert Atomic_10 counter == 1
+simulate Atomic_16 assert number[tid] > 0; havoc j;         assume (forall t: TID :: 1 <= t && t < Tid && t != tid ==> number[t] == 0 || number[t] > number[tid] || (number[t] == number[tid] && t > tid)); assert counter == 0;                 counter := counter + 1;
+aux begin owner int
+simulate Atomic_10 assert counter == 1;         counter := counter - 1;          number[tid] := 0; owner := 0;
+aux end owner
+assert Atomic_9 owner == tid
+assert Atomic_10 owner == tid
+assert Atomic_1 owner != tid
+assert Atomic_1 number[tid] == 0
+invariant 0 <= owner && owner <= Tid
+invariant owner != 0 <==> number[owner] > 0 && (forall t: TID :: { number[t] } 1 <= t && t < Tid && t != owner ==> number[t] == 0 || number[t] > number[owner] || (number[t] == number[owner] && t > owner))
+invariant owner != 0 ==> number[owner] > 0 && (forall t: TID :: { number[t] } 1 <= t && t < Tid && t != owner ==> number[t] == 0 || number[t] > number[owner] || (number[t] == number[owner] && t > owner))
+reduce all
+invariant counter == 0
+check all block

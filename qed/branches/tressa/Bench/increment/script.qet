@@ -1,0 +1,17 @@
+inline CAS
+peelout Atomic_2@inc
+simulate Atomic_2@inc havoc t;
+simulate Atomic_2_dup@inc havoc t;
+reduce all
+simulate Atomic_8@inc havoc t; havoc fresh_0; havoc b;
+reduce all
+reduce loop Atomic_8@inc havoc t, b, fresh_0;
+reduce all
+simulate Atomic_17@inc x.v := x.v + 1; havoc t, b, fresh_0;
+inline inc
+reduce all
+peelout Call_5@add
+reduce all
+reduce loop Call_5@add var k:int;  if(0 < n) { k := n;  havoc n; assume 0 <= n && n <= k;  g.v := g.v + k - n;  } havoc fresh_0, fresh_1, fresh_2;
+reduce all
+simulate Atomic_24@add if(0 < n) { g.v := g.v + n; n := 0; } havoc k, fresh_0, fresh_1, fresh_2;

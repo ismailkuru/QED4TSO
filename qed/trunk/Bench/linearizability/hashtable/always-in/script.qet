@@ -1,0 +1,6 @@
+inline all
+
+reduce all
+
+# introduce all invariants
+include invariants.qet

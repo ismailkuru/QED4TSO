@@ -1,0 +1,214 @@
+FindSlot (x)
+r = -1; i = 0;
+while(i < N  && r == -1) {
+    acq (M[i]);
+    if (M[i].elt == null) {
+       M[i].elt= x;
+       rel (M[i]);
+       r = i;
+    } else {
+       rel (M[i]);
+    }
+    i = i + 1;
+}
+return r;
+
+
+InsertPair (x, y)
+i = FindSlot (x);
+if (i == -1) {
+     return failure;
+}
+j = FindSlot (y);
+if (j == -1) {
+    M[i].elt= null;
+    return failure;
+}
+acq (M[i])
+acq (M[j])
+   M[i].vld = true;
+   M[j].vld = true;
+rel (M[i]);
+rel (M[j]);
+return success;
+
+-------------------------------------------------------------------
+
+FindSlot (x)
+r = -1; i = 0;
+while(i < N  && r == -1) {
+    acq (M[i]);
+    if (*) {
+       assume M[i].elt == null;
+       M[i].elt= x;
+       rel (M[i]);
+       r = i;
+    } else {
+       assume M[i].elt != null;
+       rel (M[i]);
+    }
+    i = i + 1;
+}
+return r;
+
+
+InsertPair (x, y)
+i = FindSlot (x);
+if (*) {
+     assume i == -1;
+     return failure;
+}
+j = FindSlot (y);
+if (*) {
+    assume j == -1;
+    M[i].elt= null;
+    return failure;
+}
+acq (M[i])
+acq (M[j])
+   M[i].vld = true;
+   M[j].vld = true;
+rel (M[i]);
+rel (M[j]);
+return success;
+
+-------------------------------------------------------------------
+
+we annotate the code with assertions on the lock of items
+
+FindSlot (x)
+r = -1; i = 0;
+while(i < N  && r == -1) {
+    [acq (M[i]); ow[i] = tid;
+    if (*) {
+       [assert ow[i] == tid; assume M[i].elt == null;]
+       [assert ow[i] == tid; M[i].elt= x;]
+       [assert ow[i] == tid; rel (M[i]); ow[i] = 0;]
+       r = i;
+    } else {
+       [assert ow[i] == tid; assume M[i].elt != null;]
+       [assert ow[i] == tid; rel (M[i]); ow[i] = 0;]
+    }
+    i = i + 1;
+}
+return r;
+
+
+InsertPair (x, y)
+i = FindSlot (x);
+if (*) {
+     assume i == -1;
+     return failure;
+}
+j = FindSlot (y);
+if (*) {
+    assume j == -1;
+    M[i].elt= null;
+    return failure;
+}
+[acq (M[i]); ow[i] = tid;]
+[acq (M[j]); ow[j] = tid;]
+   [assert ow[i] == tid; M[i].vld = true;]
+   [assert ow[i] == tid; M[j].vld = true;]
+[assert ow[i] == tid; rel (M[i]); ow[i] = 0;]
+[assert ow[j] == tid; rel (M[j]); ow[j] = 0;]
+return success;
+
+
+-------------------------------------------------------------------
+
+after doing reduction
+
+FindSlot (x)
+r = -1; i = 0;
+while(i < N  && r == -1) {
+    
+    if (*) {
+       [
+        acq (M[i]); ow[i] = tid;
+        assert ow[i] == tid; assume M[i].elt == null;
+        assert ow[i] == tid; M[i].elt= x;
+        assert ow[i] == tid; rel (M[i]); ow[i] = 0;
+	r = i;
+       ]
+       
+    } else {
+       [
+        acq (M[i]); ow[i] = tid;
+        assert ow[i] == tid; assume M[i].elt != null;
+        assert ow[i] == tid; rel (M[i]); ow[i] = 0;
+       ]
+    }
+    i = i + 1;
+}
+return r;
+
+
+InsertPair (x, y)
+i = FindSlot (x);
+if (*) {
+     assume i == -1;
+     return failure;
+}
+j = FindSlot (y);
+if (*) {
+    assume j == -1;
+    M[i].elt= null;
+    return failure;
+}
+[
+ acq (M[i]); ow[i] = tid;
+ acq (M[j]); ow[j] = tid;
+   assert ow[i] == tid; M[i].vld = true;
+   assert ow[i] == tid; M[j].vld = true;
+ assert ow[i] == tid; rel (M[i]); ow[i] = 0;
+ assert ow[j] == tid; rel (M[j]); ow[j] = 0;
+]
+
+return success;
+
+
+--------------------------------------------------------------------
+
+removing checking assertions on ow and simplifying the code
+
+
+FindSlot (x)
+r = -1; i = 0;
+while(i < N  && r == -1) {
+    
+    if (*) {
+       [
+        assume M[i].elt == null;
+        M[i].elt= x;
+        r = i;
+       ]
+       
+    } else {
+       [
+        assume M[i].elt != null
+       ]
+    }
+    i = i + 1;
+}
+return r;
+
+
+InsertPair (x, y)
+i = FindSlot (x);
+if (*) {
+     assume i == -1;
+     return failure;
+}
+j = FindSlot (y);
+if (*) {
+    assume j == -1;
+    M[i].elt = null;
+    return failure;
+}
+[
+ M[i].vld = true;
+ M[j].vld = true;
+]
+
+return success;
